@@ -6,6 +6,8 @@
   <title>PDKS - Lokasyonlar</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -45,8 +47,15 @@
           <div class="form-group"><label>Enlem (Latitude) *</label><input type="number" step="any" id="loc-lat" placeholder="41.0082"></div>
           <div class="form-group"><label>Boylam (Longitude) *</label><input type="number" step="any" id="loc-lng" placeholder="28.9784"></div>
         </div>
-        <div class="form-group"><label>GPS Toleransı (metre)</label><input type="number" id="loc-radius" value="50" min="10" max="500"></div>
-        <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">💡 İpucu: Google Maps'te lokasyona sağ tıklayarak koordinatları kopyalayabilirsiniz.</p>
+        <div class="form-group" style="margin-bottom:8px; display:flex; justify-content:space-between; align-items:center;">
+          <label style="margin-bottom:0;">Harita Üzerinden Seç</label>
+          <button class="btn btn-sm btn-secondary" onclick="useCurrentLocation()" style="padding:4px 8px; font-size:11px;">📍 Şu Anki Konumumu Al</button>
+        </div>
+        <div class="map-help">💡 Haritaya tıklayarak veya pini sürükleyerek konum seçebilirsiniz.</div>
+        <div class="map-container">
+          <div id="loc-map"></div>
+        </div>
+        <div class="form-group"><label>GPS Toleransı (metre)</label><input type="number" id="loc-radius" value="50" min="10" max="500" oninput="updateMapCircle()"></div>
         <div id="loc-error" class="alert alert-danger" style="display:none;"></div>
       </div>
       <div class="modal-footer">
@@ -110,7 +119,56 @@
       }).join('');
     }
 
-    function showAddLocation() {
+    let map, mapMarker, mapCircle;
+    const DEFAULT_COORD = [41.0082, 28.9784];
+
+    function initMap() {
+      if (map) return;
+      map = L.map('loc-map').setView(DEFAULT_COORD, 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+      }).addTo(map);
+
+      map.on('click', (e) => {
+        const { lat, lng } = e.latlng;
+        setMapPosition(lat, lng);
+      });
+    }
+
+    function setMapPosition(lat, lng, zoom = 15) {
+      const radius = parseInt(document.getElementById('loc-radius').value) || 50;
+      document.getElementById('loc-lat').value = lat.toFixed(6);
+      document.getElementById('loc-lng').value = lng.toFixed(6);
+
+      if (!mapMarker) {
+        mapMarker = L.marker([lat, lng], { draggable: true }).addTo(map);
+        mapCircle = L.circle([lat, lng], { radius, color: '#FF6B00', fillOpacity: 0.2 }).addTo(map);
+
+        mapMarker.on('dragend', () => {
+          const pos = mapMarker.getLatLng();
+          setMapPosition(pos.lat, pos.lng);
+        });
+      } else {
+        mapMarker.setLatLng([lat, lng]);
+        mapCircle.setLatLng([lat, lng]);
+        mapCircle.setRadius(radius);
+      }
+      map.setView([lat, lng], zoom);
+    }
+
+    function updateMapCircle() {
+      const radius = parseInt(document.getElementById('loc-radius').value) || 50;
+      if (mapCircle) mapCircle.setRadius(radius);
+    }
+
+    function useCurrentLocation() {
+      if (!navigator.geolocation) return alert('GPS desteği bulunamadı');
+      navigator.geolocation.getCurrentPosition((pos) => {
+        setMapPosition(pos.coords.latitude, pos.coords.longitude);
+      }, (err) => alert('Konum alınamadı: ' + err.message));
+    }
+
+    async function showAddLocation() {
       document.getElementById('loc-modal-title').textContent = 'Yeni Lokasyon';
       document.getElementById('loc-edit-id').value = '';
       document.getElementById('loc-name').value = '';
@@ -120,6 +178,12 @@
       document.getElementById('loc-radius').value = '50';
       document.getElementById('loc-error').style.display = 'none';
       document.getElementById('loc-modal').style.display = 'flex';
+      
+      setTimeout(() => {
+        initMap();
+        map.invalidateSize();
+        setMapPosition(DEFAULT_COORD[0], DEFAULT_COORD[1], 10);
+      }, 100);
     }
 
     async function editLocation(id) {
@@ -135,6 +199,12 @@
       document.getElementById('loc-radius').value = l.radius_meters;
       document.getElementById('loc-error').style.display = 'none';
       document.getElementById('loc-modal').style.display = 'flex';
+
+      setTimeout(() => {
+        initMap();
+        map.invalidateSize();
+        setMapPosition(l.latitude, l.longitude, 16);
+      }, 100);
     }
 
     async function saveLocation() {
@@ -142,13 +212,13 @@
       const body = {
         name: document.getElementById('loc-name').value,
         address: document.getElementById('loc-address').value,
-        latitude: document.getElementById('loc-lat').value,
-        longitude: document.getElementById('loc-lng').value,
-        radius_meters: document.getElementById('loc-radius').value,
+        latitude: parseFloat(document.getElementById('loc-lat').value),
+        longitude: parseFloat(document.getElementById('loc-lng').value),
+        radius_meters: parseInt(document.getElementById('loc-radius').value),
         is_active: true
       };
       const errEl = document.getElementById('loc-error');
-      if (!body.name || !body.latitude || !body.longitude) { errEl.textContent='Ad, enlem ve boylam zorunlu'; errEl.style.display='block'; return; }
+      if (!body.name || isNaN(body.latitude) || isNaN(body.longitude)) { errEl.textContent='Ad, enlem ve boylam zorunlu'; errEl.style.display='block'; return; }
 
       let result;
       if (id) {

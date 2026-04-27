@@ -145,6 +145,34 @@ tbody tr:last-child td { border-bottom:none; }
 /* SELFIE THUMBNAIL */
 .selfie-thumb { width:40px; height:40px; border-radius:8px; object-fit:cover; cursor:pointer; border:1px solid var(--border); }
 
+/* MAP */
+.map-container {
+  height: 300px;
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin-top: 10px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+.map-help {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+#loc-map { height: 100%; width: 100%; }
+
+/* Leaflet Overrides */
+.leaflet-container { background: #111 !important; }
+.leaflet-control-attribution { background: rgba(0,0,0,0.5) !important; color: #666 !important; }
+.leaflet-bar a { background-color: var(--bg-card) !important; color: white !important; border-bottom: 1px solid var(--border) !important; }
+.leaflet-bar a:hover { background-color: var(--bg-card-hover) !important; }
+
 /* RESPONSIVE */
 @media (max-width:900px) {
   .sidebar { width:60px; }
