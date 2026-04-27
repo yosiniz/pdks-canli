@@ -156,11 +156,29 @@
         const inT = r.check_in_time?new Date(r.check_in_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';
         const outT = r.check_out_time?new Date(r.check_out_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';
         const badge = r.status==='checked_in'?'<span class="badge badge-success">Mesaide</span>':r.status==='checked_out'?'<span class="badge badge-info">Çıkış</span>':'<span class="badge badge-danger">Düzensiz</span>';
-        const gps = r.is_gps_valid?'<span class="badge badge-success">✓</span>':'<span class="badge badge-danger">✗</span>';
+        
+        // Sinyal Takibi
+        const lastSeen = new Date(r.updated_at || r.check_in_time);
+        const diff = (new Date() - lastSeen) / 1000;
+        let gpsStatus = r.is_gps_valid ? '<span class="badge badge-success">✓</span>' : '<span class="badge badge-danger">✗</span>';
+        
+        // Eger mesaideyse ve sinyal 15 saniyedir gelmiyorsa carpi yap
+        if ((r.status === 'checked_in' || r.status === 'irregular') && diff > 15) {
+          gpsStatus = '<span class="badge badge-danger" title="Sinyal Yok">✗</span>';
+        }
+
         const selfie = r.check_in_selfie?'<img src="'+r.check_in_selfie+'" class="selfie-thumb">':'-';
-        return '<tr><td>'+r.full_name+'</td><td>'+r.location_name+'</td><td>'+inT+'</td><td>'+outT+'</td><td>'+badge+'</td><td>'+gps+'</td><td>'+selfie+'</td></tr>';
+        return '<tr><td>'+r.full_name+'</td><td>'+r.location_name+'</td><td>'+inT+'</td><td>'+outT+'</td><td>'+badge+'</td><td>'+gpsStatus+'</td><td>'+selfie+'</td></tr>';
       }).join('');
     }
+
+    // Periyodik yenileme (3 saniye)
+    setInterval(() => {
+      const dailyPanel = document.getElementById('daily-panel');
+      if (dailyPanel && dailyPanel.style.display !== 'none') {
+        loadDaily();
+      }
+    }, 3000);
 
     async function loadMonthly() {
       const month = document.getElementById('monthly-month').value;
