@@ -136,12 +136,11 @@
         const inTime = r.check_in_time ? new Date(r.check_in_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}) : '-';
         const outTime = r.check_out_time ? new Date(r.check_out_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}) : '-';
         
-        // Sinyal Takibi (Son 2 saniye icinde guncelleme gelmis mi?)
-        const lastSeen = new Date(r.updated_at || r.check_in_time);
-        const diff = (new Date() - lastSeen) / 1000;
+        // Sinyal Takibi (Sunucudan gelen saniye farkini kullan)
+        const diff = r.last_seen_seconds;
         let signalStatus = '';
         if (r.status === 'checked_in' || r.status === 'irregular') {
-          if (diff > 2) signalStatus = '<br><span class="badge badge-muted" style="font-size:9px; margin-top:4px;">⚠️ SİNYAL YOK</span>';
+          if (diff > 5) signalStatus = '<br><span class="badge badge-muted" style="font-size:9px; margin-top:4px;">⚠️ SİNYAL YOK</span>';
           else signalStatus = '<br><span class="badge badge-success" style="font-size:9px; margin-top:4px;">● CANLI</span>';
         }
 

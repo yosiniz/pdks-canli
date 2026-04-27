@@ -157,13 +157,12 @@
         const outT = r.check_out_time?new Date(r.check_out_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';
         const badge = r.status==='checked_in'?'<span class="badge badge-success">Mesaide</span>':r.status==='checked_out'?'<span class="badge badge-info">Çıkış</span>':'<span class="badge badge-danger">Düzensiz</span>';
         
-        // Sinyal Takibi
-        const lastSeen = new Date(r.updated_at || r.check_in_time);
-        const diff = (new Date() - lastSeen) / 1000;
+        // Sinyal Takibi (Sunucudan gelen saniye farkini kullan)
+        const diff = r.last_seen_seconds;
         let gpsStatus = r.is_gps_valid ? '<span class="badge badge-success">✓</span>' : '<span class="badge badge-danger">✗</span>';
         
-        // Eger mesaideyse ve sinyal 2 saniyedir gelmiyorsa carpi yap
-        if ((r.status === 'checked_in' || r.status === 'irregular') && diff > 2) {
+        // Eger mesaideyse ve sinyal 5 saniyedir gelmiyorsa carpi yap
+        if ((r.status === 'checked_in' || r.status === 'irregular') && diff > 5) {
           gpsStatus = '<span class="badge badge-danger" title="Sinyal Yok">✗</span>';
         }
 

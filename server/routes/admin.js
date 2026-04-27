@@ -18,7 +18,14 @@ router.get('/dashboard', (req, res) => {
     const checkedOut = db.get('SELECT COUNT(*) as c FROM attendance WHERE work_date=? AND status=?', [today, 'checked_out']);
     const irregular = db.get('SELECT COUNT(*) as c FROM attendance WHERE work_date=? AND status=?', [today, 'irregular']);
     const totalLoc = db.get('SELECT COUNT(*) as c FROM locations WHERE is_active=1');
-    const recent = db.all('SELECT a.*, u.full_name, l.name as location_name FROM attendance a JOIN users u ON a.user_id=u.id JOIN locations l ON a.location_id=l.id WHERE a.work_date=? ORDER BY a.id DESC LIMIT 10', [today]);
+    const recent = db.all(`
+      SELECT a.*, u.full_name, l.name as location_name,
+      (STRFTIME('%s', 'now') - STRFTIME('%s', COALESCE(a.updated_at, a.check_in_time))) as last_seen_seconds
+      FROM attendance a 
+      JOIN users u ON a.user_id=u.id 
+      JOIN locations l ON a.location_id=l.id 
+      WHERE a.work_date=? 
+      ORDER BY a.id DESC LIMIT 10`, [today]);
     res.json({ success: true, dashboard: { total_employees: totalUsers.c, checked_in_now: checkedIn.c, checked_out_today: checkedOut.c, irregular_today: irregular.c, total_locations: totalLoc.c, recent_activity: recent } });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Sunucu hatasi' }); }
 });
@@ -188,7 +195,14 @@ router.get('/reports/daily', (req, res) => {
   try {
     const db = getDb();
     const date = req.query.date || new Date().toISOString().split('T')[0];
-    const records = db.all('SELECT a.*, u.full_name, l.name as location_name FROM attendance a JOIN users u ON a.user_id=u.id JOIN locations l ON a.location_id=l.id WHERE a.work_date=? ORDER BY u.full_name', [date]);
+    const records = db.all(`
+      SELECT a.*, u.full_name, l.name as location_name,
+      (STRFTIME('%s', 'now') - STRFTIME('%s', COALESCE(a.updated_at, a.check_in_time))) as last_seen_seconds
+      FROM attendance a 
+      JOIN users u ON a.user_id=u.id 
+      JOIN locations l ON a.location_id=l.id 
+      WHERE a.work_date=? 
+      ORDER BY u.full_name`, [date]);
     const total = db.get('SELECT COUNT(*) as c FROM users WHERE is_active=1 AND role=?', ['employee']);
     const present = records.length;
     res.json({ success: true, date, summary: { total: total.c, present, absent: total.c - present, irregular: records.filter(r => r.status==='irregular').length }, records });
