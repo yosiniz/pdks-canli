@@ -16,31 +16,40 @@ function getCurrentPosition() {
   });
 }
 
+async function sendHeartbeat() {
+  const indicator = document.getElementById('gps-indicator');
+  try {
+    const pos = await getCurrentPosition();
+    const result = await API.heartbeat(pos.lat, pos.lng);
+    
+    if (result.success) {
+      indicator.style.color = '#00C853'; // Yesil - Aktif
+      indicator.classList.remove('pulse-error');
+    }
+  } catch (err) {
+    console.warn('Sinyal gonderilemedi, otomatik yeniden denenecek...');
+    indicator.style.color = '#FF1744'; // Kirmizi - Hata
+    indicator.classList.add('pulse-error');
+  }
+}
+
 function startGPSTracking() {
   if (gpsIntervalId) return;
-  const indicator = document.getElementById('gps-indicator');
-  indicator.style.display = 'flex';
-  indicator.style.color = '#00C853';
+  document.getElementById('gps-indicator').style.display = 'flex';
+  
+  // İlk sinyali hemen gonder
+  sendHeartbeat();
+  
+  // Donguyu baslat
+  gpsIntervalId = setInterval(sendHeartbeat, GPS_INTERVAL);
 
-  gpsIntervalId = setInterval(async () => {
-    try {
-      const pos = await getCurrentPosition();
-      const result = await API.heartbeat(pos.lat, pos.lng);
-      
-      indicator.style.color = '#00C853'; // Yesil - Aktif
-      
-      if (result.success && !result.is_within_zone) {
-        console.warn('GPS: Alan disinda!');
-      }
-    } catch (err) {
-      console.error('GPS hatasi:', err);
-      indicator.style.color = '#FF1744'; // Kirmizi - Hata
-      
-      // Eger bir modal veya alert gostermek isterseniz buraya ekleyebilirsiniz
-      // showResult(false, 'Sinyal Kaybi', 'GPS veya internet baglantisi kesildi!');
-    }
-  }, GPS_INTERVAL);
-  console.log('GPS takip baslatildi (3 sn aralik)');
+  // OTOMATIK IYILESTIRME: İnternet geldigi an beklemeden sinyal gonder
+  window.addEventListener('online', () => {
+    console.log('Baglanti geri geldi, sinyal tazeleniyor...');
+    sendHeartbeat();
+  });
+  
+  console.log('Akilli GPS takip baslatildi');
 }
 
 function stopGPSTracking() {
@@ -49,5 +58,4 @@ function stopGPSTracking() {
     gpsIntervalId = null;
   }
   document.getElementById('gps-indicator').style.display = 'none';
-  console.log('GPS takip durduruldu');
 }
