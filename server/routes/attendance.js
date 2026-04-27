@@ -75,8 +75,12 @@ router.post('/heartbeat', authenticateToken, (req, res) => {
     if (!attendance) return res.status(400).json({ error: 'Aktif giris kaydi bulunamadi' });
     const gpsCheck = isWithinGeofence(lat, lng, attendance.loc_lat, attendance.loc_lng, attendance.radius_meters);
     db.run('INSERT INTO gps_logs (attendance_id, user_id, latitude, longitude, is_within_zone, distance_meters) VALUES (?,?,?,?,?,?)', [attendance.id, userId, lat, lng, gpsCheck.isWithin ? 1 : 0, gpsCheck.distance]);
+    
+    // Her sinyalde updated_at vaktini guncelle (Aktiflik takibi icin)
     if (!gpsCheck.isWithin) {
       db.run('UPDATE attendance SET is_gps_valid = 0, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', ['irregular', attendance.id]);
+    } else {
+      db.run('UPDATE attendance SET updated_at = CURRENT_TIMESTAMP WHERE id = ?', [attendance.id]);
     }
     res.json({ success: true, is_within_zone: gpsCheck.isWithin, distance: gpsCheck.distance });
   } catch (err) { console.error('Heartbeat hatasi:', err); res.status(500).json({ error: 'Sunucu hatasi' }); }

@@ -135,10 +135,20 @@
       tbody.innerHTML = d.recent_activity.map(r => {
         const inTime = r.check_in_time ? new Date(r.check_in_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}) : '-';
         const outTime = r.check_out_time ? new Date(r.check_out_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}) : '-';
+        
+        // Sinyal Takibi (Son 15 saniye icinde guncelleme gelmis mi?)
+        const lastSeen = new Date(r.updated_at || r.check_in_time);
+        const diff = (new Date() - lastSeen) / 1000;
+        let signalStatus = '';
+        if (r.status === 'checked_in' || r.status === 'irregular') {
+          if (diff > 15) signalStatus = '<br><span class="badge badge-muted" style="font-size:9px; margin-top:4px;">⚠️ SİNYAL YOK</span>';
+          else signalStatus = '<br><span class="badge badge-success" style="font-size:9px; margin-top:4px;">● CANLI</span>';
+        }
+
         let badge = '';
-        if (r.status === 'checked_in') badge = '<span class="badge badge-success">Mesaide</span>';
+        if (r.status === 'checked_in') badge = '<span class="badge badge-success">Mesaide</span>' + signalStatus;
         else if (r.status === 'checked_out') badge = '<span class="badge badge-info">Çıkış</span>';
-        else if (r.status === 'irregular') badge = '<span class="badge badge-danger">Düzensiz</span>';
+        else if (r.status === 'irregular') badge = '<span class="badge badge-danger">Düzensiz</span>' + signalStatus;
         const selfie = r.check_in_selfie ? '<img src="'+r.check_in_selfie+'" class="selfie-thumb" alt="selfie">' : '-';
         return '<tr><td>'+r.full_name+'</td><td>'+r.location_name+'</td><td>'+inTime+'</td><td>'+outTime+'</td><td>'+badge+'</td><td>'+selfie+'</td></tr>';
       }).join('');
@@ -151,7 +161,7 @@
     }
 
     loadDashboard();
-    setInterval(loadDashboard, 30000); // Refresh every 30s
+    setInterval(loadDashboard, 3000); // Refresh every 3s
   </script>
 </body>
 </html>
