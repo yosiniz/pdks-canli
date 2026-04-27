@@ -1,6 +1,6 @@
 /* PDKS Mobile - GPS Tracker Module */
 let gpsIntervalId = null;
-const GPS_INTERVAL = 3000; // 3 saniye
+const GPS_INTERVAL = 1000; // 1 saniye
 
 function getCurrentPosition() {
   return new Promise((resolve, reject) => {

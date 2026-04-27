@@ -162,8 +162,8 @@
         const diff = (new Date() - lastSeen) / 1000;
         let gpsStatus = r.is_gps_valid ? '<span class="badge badge-success">✓</span>' : '<span class="badge badge-danger">✗</span>';
         
-        // Eger mesaideyse ve sinyal 15 saniyedir gelmiyorsa carpi yap
-        if ((r.status === 'checked_in' || r.status === 'irregular') && diff > 15) {
+        // Eger mesaideyse ve sinyal 2 saniyedir gelmiyorsa carpi yap
+        if ((r.status === 'checked_in' || r.status === 'irregular') && diff > 2) {
           gpsStatus = '<span class="badge badge-danger" title="Sinyal Yok">✗</span>';
         }
 
