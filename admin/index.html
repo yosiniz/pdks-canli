@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDKS - Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="app-layout">
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <h2>PDKS</h2>
+        <small>Yönetim Paneli</small>
+      </div>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item active">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+          <span>Dashboard</span>
+        </a>
+        <a href="personnel.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+          <span>Personel</span>
+        </a>
+        <a href="locations.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          <span>Lokasyonlar</span>
+        </a>
+        <a href="reports.html" class="nav-item">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg>
+          <span>Raporlar</span>
+        </a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info">
+          <div class="user-avatar" id="user-avatar">A</div>
+          <div>
+            <div class="name" id="user-display-name">Admin</div>
+            <div class="role" id="user-role">Yönetici</div>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-full btn-logout" onclick="logout()">Çıkış Yap</button>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main-content">
+      <div class="page-header">
+        <div>
+          <h1>Dashboard</h1>
+          <p id="today-date"></p>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid" id="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon orange"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+          <div><div class="stat-value" id="stat-employees">0</div><div class="stat-label">Toplam Personel</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg></div>
+          <div><div class="stat-value" id="stat-checked-in">0</div><div class="stat-label">Şu An Mesaide</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg></div>
+          <div><div class="stat-value" id="stat-checked-out">0</div><div class="stat-label">Bugün Çıkış Yaptı</div></div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon red"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01"/></svg></div>
+          <div><div class="stat-value" id="stat-irregular">0</div><div class="stat-label">Düzensiz GPS</div></div>
+        </div>
+      </div>
+
+      <!-- Recent Activity -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Bugünkü İşlemler</h3>
+          <a href="reports.html" class="btn btn-sm btn-secondary">Tüm Raporlar →</a>
+        </div>
+        <div class="card-body" style="padding:0;">
+          <table>
+            <thead>
+              <tr>
+                <th>Personel</th>
+                <th>Lokasyon</th>
+                <th>Giriş</th>
+                <th>Çıkış</th>
+                <th>Durum</th>
+                <th>Selfie</th>
+              </tr>
+            </thead>
+            <tbody id="activity-tbody">
+              <tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const TOKEN = localStorage.getItem('pdks_admin_token');
+    const USER = JSON.parse(localStorage.getItem('pdks_admin_user') || '{}');
+    if (!TOKEN) { window.location.href = 'login.html'; }
+
+    // Set user info
+    document.getElementById('user-display-name').textContent = USER.full_name || 'Admin';
+    document.getElementById('user-role').textContent = USER.role === 'admin' ? 'Yönetici' : 'İK';
+    document.getElementById('user-avatar').textContent = (USER.full_name || 'A')[0].toUpperCase();
+    document.getElementById('today-date').textContent = new Date().toLocaleDateString('tr-TR', { weekday:'long', year:'numeric', month:'long', day:'numeric' });
+
+    async function apiFetch(url) {
+      const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + TOKEN } });
+      if (res.status === 401) { logout(); return null; }
+      return await res.json();
+    }
+
+    async function loadDashboard() {
+      const data = await apiFetch('/api/admin/dashboard');
+      if (!data || !data.success) return;
+      const d = data.dashboard;
+      document.getElementById('stat-employees').textContent = d.total_employees;
+      document.getElementById('stat-checked-in').textContent = d.checked_in_now;
+      document.getElementById('stat-checked-out').textContent = d.checked_out_today;
+      document.getElementById('stat-irregular').textContent = d.irregular_today;
+
+      const tbody = document.getElementById('activity-tbody');
+      if (!d.recent_activity || d.recent_activity.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">Bugün henüz işlem yok</td></tr>';
+        return;
+      }
+      tbody.innerHTML = d.recent_activity.map(r => {
+        const inTime = r.check_in_time ? new Date(r.check_in_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}) : '-';
+        const outTime = r.check_out_time ? new Date(r.check_out_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}) : '-';
+        let badge = '';
+        if (r.status === 'checked_in') badge = '<span class="badge badge-success">Mesaide</span>';
+        else if (r.status === 'checked_out') badge = '<span class="badge badge-info">Çıkış</span>';
+        else if (r.status === 'irregular') badge = '<span class="badge badge-danger">Düzensiz</span>';
+        const selfie = r.check_in_selfie ? '<img src="'+r.check_in_selfie+'" class="selfie-thumb" alt="selfie">' : '-';
+        return '<tr><td>'+r.full_name+'</td><td>'+r.location_name+'</td><td>'+inTime+'</td><td>'+outTime+'</td><td>'+badge+'</td><td>'+selfie+'</td></tr>';
+      }).join('');
+    }
+
+    function logout() {
+      localStorage.removeItem('pdks_admin_token');
+      localStorage.removeItem('pdks_admin_user');
+      window.location.href = 'login.html';
+    }
+
+    loadDashboard();
+    setInterval(loadDashboard, 30000); // Refresh every 30s
+  </script>
+</body>
+</html>

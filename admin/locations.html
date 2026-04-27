@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDKS - Lokasyonlar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand"><h2>PDKS</h2><small>Yönetim Paneli</small></div>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Dashboard</span></a>
+        <a href="personnel.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Personel</span></a>
+        <a href="locations.html" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Lokasyonlar</span></a>
+        <a href="reports.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span>Raporlar</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info"><div class="user-avatar">A</div><div><div class="name">Admin</div><div class="role">Yönetici</div></div></div>
+        <button class="btn btn-secondary btn-full btn-logout" onclick="logout()">Çıkış Yap</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="page-header">
+        <div><h1>Lokasyon Yönetimi</h1><p>Çalışma lokasyonlarını ve QR kodlarını yönetin</p></div>
+        <button class="btn btn-primary" onclick="showAddLocation()">+ Yeni Lokasyon</button>
+      </div>
+      <div class="stats-grid" id="locations-grid">
+        <div style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Location Modal -->
+  <div id="loc-modal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <div class="modal-header"><h3 id="loc-modal-title">Yeni Lokasyon</h3><button class="close-btn" onclick="closeLocModal()">×</button></div>
+      <div class="modal-body">
+        <input type="hidden" id="loc-edit-id">
+        <div class="form-group"><label>Lokasyon Adı *</label><input type="text" id="loc-name" placeholder="Merkez Ofis"></div>
+        <div class="form-group"><label>Adres</label><input type="text" id="loc-address" placeholder="İstanbul, Türkiye"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Enlem (Latitude) *</label><input type="number" step="any" id="loc-lat" placeholder="41.0082"></div>
+          <div class="form-group"><label>Boylam (Longitude) *</label><input type="number" step="any" id="loc-lng" placeholder="28.9784"></div>
+        </div>
+        <div class="form-group"><label>GPS Toleransı (metre)</label><input type="number" id="loc-radius" value="50" min="10" max="500"></div>
+        <p style="font-size:12px;color:var(--text-muted);margin-top:8px;">💡 İpucu: Google Maps'te lokasyona sağ tıklayarak koordinatları kopyalayabilirsiniz.</p>
+        <div id="loc-error" class="alert alert-danger" style="display:none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeLocModal()">İptal</button>
+        <button class="btn btn-primary" onclick="saveLocation()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Modal -->
+  <div id="qr-modal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <div class="modal-header"><h3 id="qr-title">QR Kod</h3><button class="close-btn" onclick="closeQRModal()">×</button></div>
+      <div class="modal-body">
+        <div class="qr-display">
+          <img id="qr-image" alt="QR Kod">
+          <div class="qr-label" id="qr-label"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="printQR()">🖨️ Yazdır</button>
+        <button class="btn btn-primary" onclick="closeQRModal()">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOKEN = localStorage.getItem('pdks_admin_token');
+    if (!TOKEN) window.location.href = 'login.html';
+
+    async function apiFetch(url, opts) {
+      const headers = { 'Authorization':'Bearer '+TOKEN };
+      if (opts && opts.body && typeof opts.body === 'string') headers['Content-Type'] = 'application/json';
+      const res = await fetch(url, { headers, ...opts });
+      if (res.status===401) { logout(); return null; }
+      return await res.json();
+    }
+
+    async function loadLocations() {
+      const data = await apiFetch('/api/admin/locations');
+      if (!data) return;
+      const grid = document.getElementById('locations-grid');
+      if (!data.locations || data.locations.length === 0) {
+        grid.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:60px;grid-column:1/-1;"><p>Henüz lokasyon eklenmemiş</p><p style="margin-top:8px;">Yukarıdaki "Yeni Lokasyon" butonuna tıklayın</p></div>';
+        return;
+      }
+      grid.innerHTML = data.locations.map(l => {
+        const statusBadge = l.is_active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-danger">Pasif</span>';
+        return '<div class="stat-card" style="flex-direction:column;align-items:flex-start;gap:12px;cursor:default;">' +
+          '<div style="display:flex;justify-content:space-between;width:100%;align-items:center;">' +
+            '<div style="font-size:16px;font-weight:600;">'+l.name+'</div>' + statusBadge +
+          '</div>' +
+          '<div style="font-size:12px;color:var(--text-secondary);">📍 '+(l.address||'Adres belirtilmemiş')+'</div>' +
+          '<div style="font-size:12px;color:var(--text-muted);">Koordinat: '+l.latitude.toFixed(4)+', '+l.longitude.toFixed(4)+' • Yarıçap: '+l.radius_meters+'m</div>' +
+          '<div style="display:flex;gap:8px;width:100%;margin-top:4px;">' +
+            '<button class="btn btn-sm btn-primary" onclick="showQR('+l.id+')">QR Göster</button>' +
+            '<button class="btn btn-sm btn-secondary" onclick="regenerateQR('+l.id+')">QR Yenile</button>' +
+            '<button class="btn btn-sm btn-secondary" onclick="editLocation('+l.id+')">Düzenle</button>' +
+          '</div>' +
+        '</div>';
+      }).join('');
+    }
+
+    function showAddLocation() {
+      document.getElementById('loc-modal-title').textContent = 'Yeni Lokasyon';
+      document.getElementById('loc-edit-id').value = '';
+      document.getElementById('loc-name').value = '';
+      document.getElementById('loc-address').value = '';
+      document.getElementById('loc-lat').value = '';
+      document.getElementById('loc-lng').value = '';
+      document.getElementById('loc-radius').value = '50';
+      document.getElementById('loc-error').style.display = 'none';
+      document.getElementById('loc-modal').style.display = 'flex';
+    }
+
+    async function editLocation(id) {
+      const data = await apiFetch('/api/admin/locations');
+      const l = data.locations.find(x => x.id === id);
+      if (!l) return;
+      document.getElementById('loc-modal-title').textContent = 'Lokasyon Düzenle';
+      document.getElementById('loc-edit-id').value = l.id;
+      document.getElementById('loc-name').value = l.name;
+      document.getElementById('loc-address').value = l.address || '';
+      document.getElementById('loc-lat').value = l.latitude;
+      document.getElementById('loc-lng').value = l.longitude;
+      document.getElementById('loc-radius').value = l.radius_meters;
+      document.getElementById('loc-error').style.display = 'none';
+      document.getElementById('loc-modal').style.display = 'flex';
+    }
+
+    async function saveLocation() {
+      const id = document.getElementById('loc-edit-id').value;
+      const body = {
+        name: document.getElementById('loc-name').value,
+        address: document.getElementById('loc-address').value,
+        latitude: document.getElementById('loc-lat').value,
+        longitude: document.getElementById('loc-lng').value,
+        radius_meters: document.getElementById('loc-radius').value,
+        is_active: true
+      };
+      const errEl = document.getElementById('loc-error');
+      if (!body.name || !body.latitude || !body.longitude) { errEl.textContent='Ad, enlem ve boylam zorunlu'; errEl.style.display='block'; return; }
+
+      let result;
+      if (id) {
+        result = await apiFetch('/api/admin/locations/'+id, { method:'PUT', body:JSON.stringify(body) });
+      } else {
+        result = await apiFetch('/api/admin/locations', { method:'POST', body:JSON.stringify(body) });
+      }
+      if (result && result.success) { closeLocModal(); loadLocations(); }
+      else { errEl.textContent = result?.error||'Hata'; errEl.style.display='block'; }
+    }
+
+    async function showQR(id) {
+      const data = await apiFetch('/api/admin/locations/'+id+'/qr-image');
+      if (!data || !data.success) return;
+      document.getElementById('qr-image').src = data.qr_base64;
+      document.getElementById('qr-title').textContent = data.location_name + ' - QR Kod';
+      document.getElementById('qr-label').textContent = data.location_name;
+      document.getElementById('qr-modal').style.display = 'flex';
+    }
+
+    async function regenerateQR(id) {
+      if (!confirm('QR kodu yenilenecek. Eski QR kod geçersiz olacak. Devam etmek istiyor musunuz?')) return;
+      const result = await apiFetch('/api/admin/locations/'+id+'/regenerate-qr', { method:'POST' });
+      if (result && result.success) { alert('QR kod yenilendi!'); loadLocations(); }
+    }
+
+    function printQR() {
+      const img = document.getElementById('qr-image').src;
+      const label = document.getElementById('qr-label').textContent;
+      const w = window.open('','','width=500,height=600');
+      w.document.write('<html><head><title>QR Kod - '+label+'</title></head><body style="text-align:center;padding:40px;font-family:Arial;"><h2>PDKS - '+label+'</h2><img src="'+img+'" style="max-width:400px;margin:20px;"><p>Bu QR kodu lokasyona yerleştirin</p></body></html>');
+      w.document.close();
+      w.print();
+    }
+
+    function closeLocModal() { document.getElementById('loc-modal').style.display='none'; }
+    function closeQRModal() { document.getElementById('qr-modal').style.display='none'; }
+    function logout() { localStorage.removeItem('pdks_admin_token'); localStorage.removeItem('pdks_admin_user'); window.location.href='login.html'; }
+
+    loadLocations();
+  </script>
+</body>
+</html>

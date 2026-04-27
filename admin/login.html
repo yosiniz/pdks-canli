@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDKS Admin - Giriş</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body class="login-page">
+  <div class="login-wrapper">
+    <div class="login-card">
+      <div class="login-brand">
+        <svg width="48" height="48" viewBox="0 0 80 80" fill="none">
+          <rect width="80" height="80" rx="20" fill="#FF6B00"/>
+          <circle cx="40" cy="40" r="12" fill="#1a1a1a"/>
+          <path d="M34 40l4 4 8-8" stroke="#FF6B00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h1>PDKS</h1>
+        <p>Yönetim Paneli</p>
+      </div>
+      <form id="login-form">
+        <div class="form-group">
+          <label>Kullanıcı Adı</label>
+          <input type="text" id="username" required placeholder="admin" autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label>Şifre</label>
+          <input type="password" id="password" required placeholder="••••••" autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">Giriş Yap</button>
+        <div id="error-msg" class="alert alert-danger" style="display:none;"></div>
+      </form>
+    </div>
+  </div>
+  <script>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      const errEl = document.getElementById('error-msg');
+      errEl.style.display = 'none';
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (data.success && (data.user.role === 'admin' || data.user.role === 'hr')) {
+          localStorage.setItem('pdks_admin_token', data.token);
+          localStorage.setItem('pdks_admin_user', JSON.stringify(data.user));
+          window.location.href = '/admin/index.html';
+        } else if (data.success) {
+          errEl.textContent = 'Bu panel sadece yönetici ve İK personeli içindir';
+          errEl.style.display = 'block';
+        } else {
+          errEl.textContent = data.error || 'Giriş başarısız';
+          errEl.style.display = 'block';
+        }
+      } catch (err) {
+        errEl.textContent = 'Bağlantı hatası';
+        errEl.style.display = 'block';
+      }
+    });
+    // Auto redirect if already logged in
+    if (localStorage.getItem('pdks_admin_token')) {
+      window.location.href = '/admin/index.html';
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDKS - Raporlar</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand"><h2>PDKS</h2><small>Yönetim Paneli</small></div>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Dashboard</span></a>
+        <a href="personnel.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Personel</span></a>
+        <a href="locations.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Lokasyonlar</span></a>
+        <a href="reports.html" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span>Raporlar</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info"><div class="user-avatar">A</div><div><div class="name">Admin</div><div class="role">Yönetici</div></div></div>
+        <button class="btn btn-secondary btn-full btn-logout" onclick="logout()">Çıkış Yap</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="page-header">
+        <div><h1>Raporlar</h1><p>Devam kayıtlarını görüntüleyin ve filtreleyin</p></div>
+        <button class="btn btn-primary" onclick="exportCSV()">📥 CSV İndir</button>
+      </div>
+
+      <!-- Tab Buttons -->
+      <div style="display:flex;gap:8px;margin-bottom:20px;">
+        <button class="btn btn-primary" id="tab-daily" onclick="switchTab('daily')">Günlük Rapor</button>
+        <button class="btn btn-secondary" id="tab-monthly" onclick="switchTab('monthly')">Aylık Rapor</button>
+        <button class="btn btn-secondary" id="tab-detail" onclick="switchTab('detail')">Detaylı Kayıtlar</button>
+      </div>
+
+      <!-- Daily Report -->
+      <div id="daily-panel">
+        <div class="filter-bar">
+          <input type="date" id="daily-date" onchange="loadDaily()">
+        </div>
+        <div class="stats-grid" id="daily-stats"></div>
+        <div class="card">
+          <div class="card-header"><h3>Günlük Devam Listesi</h3></div>
+          <div class="card-body" style="padding:0;">
+            <table>
+              <thead><tr><th>Personel</th><th>Lokasyon</th><th>Giriş</th><th>Çıkış</th><th>Durum</th><th>GPS</th><th>Selfie</th></tr></thead>
+              <tbody id="daily-tbody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">Tarih seçin</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly Report -->
+      <div id="monthly-panel" style="display:none;">
+        <div class="filter-bar">
+          <select id="monthly-month" onchange="loadMonthly()">
+            <option value="1">Ocak</option><option value="2">Şubat</option><option value="3">Mart</option><option value="4">Nisan</option>
+            <option value="5">Mayıs</option><option value="6">Haziran</option><option value="7">Temmuz</option><option value="8">Ağustos</option>
+            <option value="9">Eylül</option><option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
+          </select>
+          <input type="number" id="monthly-year" onchange="loadMonthly()" min="2020" max="2030" style="width:100px;">
+        </div>
+        <div class="card">
+          <div class="card-header"><h3>Aylık Özet</h3></div>
+          <div class="card-body" style="padding:0;">
+            <table>
+              <thead><tr><th>Personel</th><th>Toplam Gün</th><th>Düzensiz Gün</th></tr></thead>
+              <tbody id="monthly-tbody"><tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Detail Panel -->
+      <div id="detail-panel" style="display:none;">
+        <div class="filter-bar">
+          <input type="date" id="detail-date" onchange="loadDetail()">
+          <select id="detail-status" onchange="loadDetail()">
+            <option value="">Tüm Durumlar</option>
+            <option value="checked_in">Mesaide</option>
+            <option value="checked_out">Çıkış</option>
+            <option value="irregular">Düzensiz</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="card-body" style="padding:0;">
+            <table>
+              <thead><tr><th>Personel</th><th>Lokasyon</th><th>Giriş</th><th>Çıkış</th><th>Durum</th><th>Giriş Selfie</th><th>Çıkış Selfie</th><th>Detay</th></tr></thead>
+              <tbody id="detail-tbody"><tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:40px;">Filtre seçin</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- GPS Detail Modal -->
+      <div id="gps-modal" class="modal-overlay" style="display:none;">
+        <div class="modal" style="max-width:700px;">
+          <div class="modal-header"><h3 id="gps-modal-title">GPS Kayıtları</h3><button class="close-btn" onclick="closeGPSModal()">×</button></div>
+          <div class="modal-body">
+            <div id="gps-info" style="margin-bottom:16px;"></div>
+            <table>
+              <thead><tr><th>Saat</th><th>Enlem</th><th>Boylam</th><th>Mesafe</th><th>Durum</th></tr></thead>
+              <tbody id="gps-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const TOKEN = localStorage.getItem('pdks_admin_token');
+    if (!TOKEN) window.location.href = 'login.html';
+
+    // Set default dates
+    document.getElementById('daily-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('detail-date').value = new Date().toISOString().split('T')[0];
+    document.getElementById('monthly-month').value = new Date().getMonth() + 1;
+    document.getElementById('monthly-year').value = new Date().getFullYear();
+
+    async function apiFetch(url) {
+      const res = await fetch(url, { headers: { 'Authorization':'Bearer '+TOKEN } });
+      if (res.status===401) { logout(); return null; }
+      return await res.json();
+    }
+
+    function switchTab(tab) {
+      document.getElementById('daily-panel').style.display = tab==='daily'?'block':'none';
+      document.getElementById('monthly-panel').style.display = tab==='monthly'?'block':'none';
+      document.getElementById('detail-panel').style.display = tab==='detail'?'block':'none';
+      document.getElementById('tab-daily').className = 'btn '+(tab==='daily'?'btn-primary':'btn-secondary');
+      document.getElementById('tab-monthly').className = 'btn '+(tab==='monthly'?'btn-primary':'btn-secondary');
+      document.getElementById('tab-detail').className = 'btn '+(tab==='detail'?'btn-primary':'btn-secondary');
+      if (tab==='daily') loadDaily();
+      if (tab==='monthly') loadMonthly();
+      if (tab==='detail') loadDetail();
+    }
+
+    async function loadDaily() {
+      const date = document.getElementById('daily-date').value;
+      if (!date) return;
+      const data = await apiFetch('/api/admin/reports/daily?date='+date);
+      if (!data || !data.success) return;
+      const s = data.summary;
+      document.getElementById('daily-stats').innerHTML =
+        '<div class="stat-card"><div class="stat-icon orange"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div><div><div class="stat-value">'+s.total+'</div><div class="stat-label">Toplam</div></div></div>' +
+        '<div class="stat-card"><div class="stat-icon green"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12l3 3 5-5"/></svg></div><div><div class="stat-value">'+s.present+'</div><div class="stat-label">Mevcut</div></div></div>' +
+        '<div class="stat-card"><div class="stat-icon red"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M15 9l-6 6M9 9l6 6"/></svg></div><div><div class="stat-value">'+s.absent+'</div><div class="stat-label">Yok</div></div></div>' +
+        '<div class="stat-card"><div class="stat-icon blue"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg></div><div><div class="stat-value">'+s.irregular+'</div><div class="stat-label">Düzensiz</div></div></div>';
+
+      const tbody = document.getElementById('daily-tbody');
+      if (!data.records.length) { tbody.innerHTML='<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-muted);">Bu tarihte kayıt yok</td></tr>'; return; }
+      tbody.innerHTML = data.records.map(r => {
+        const inT = r.check_in_time?new Date(r.check_in_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';
+        const outT = r.check_out_time?new Date(r.check_out_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';
+        const badge = r.status==='checked_in'?'<span class="badge badge-success">Mesaide</span>':r.status==='checked_out'?'<span class="badge badge-info">Çıkış</span>':'<span class="badge badge-danger">Düzensiz</span>';
+        const gps = r.is_gps_valid?'<span class="badge badge-success">✓</span>':'<span class="badge badge-danger">✗</span>';
+        const selfie = r.check_in_selfie?'<img src="'+r.check_in_selfie+'" class="selfie-thumb">':'-';
+        return '<tr><td>'+r.full_name+'</td><td>'+r.location_name+'</td><td>'+inT+'</td><td>'+outT+'</td><td>'+badge+'</td><td>'+gps+'</td><td>'+selfie+'</td></tr>';
+      }).join('');
+    }
+
+    async function loadMonthly() {
+      const month = document.getElementById('monthly-month').value;
+      const year = document.getElementById('monthly-year').value;
+      const data = await apiFetch('/api/admin/reports/monthly?month='+month+'&year='+year);
+      if (!data || !data.success) return;
+      const tbody = document.getElementById('monthly-tbody');
+      if (!data.records.length) { tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:40px;color:var(--text-muted);">Bu ay kayıt yok</td></tr>'; return; }
+      tbody.innerHTML = data.records.map(r => {
+        return '<tr><td>'+r.full_name+'</td><td>'+r.days_present+' gün</td><td>'+(r.irregular_days||0)+' gün</td></tr>';
+      }).join('');
+    }
+
+    async function loadDetail() {
+      const date = document.getElementById('detail-date').value;
+      const status = document.getElementById('detail-status').value;
+      let url = '/api/admin/attendance?limit=100';
+      if (date) url += '&date='+date;
+      if (status) url += '&status='+status;
+      const data = await apiFetch(url);
+      if (!data || !data.success) return;
+      const tbody = document.getElementById('detail-tbody');
+      if (!data.records.length) { tbody.innerHTML='<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-muted);">Kayıt bulunamadı</td></tr>'; return; }
+      tbody.innerHTML = data.records.map(r => {
+        const inT = r.check_in_time?new Date(r.check_in_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';
+        const outT = r.check_out_time?new Date(r.check_out_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';
+        const badge = r.status==='checked_in'?'<span class="badge badge-success">Mesaide</span>':r.status==='checked_out'?'<span class="badge badge-info">Çıkış</span>':'<span class="badge badge-danger">Düzensiz</span>';
+        const selfieIn = r.check_in_selfie?'<img src="'+r.check_in_selfie+'" class="selfie-thumb">':'-';
+        const selfieOut = r.check_out_selfie?'<img src="'+r.check_out_selfie+'" class="selfie-thumb">':'-';
+        return '<tr><td>'+r.full_name+'</td><td>'+r.location_name+'</td><td>'+inT+'</td><td>'+outT+'</td><td>'+badge+'</td><td>'+selfieIn+'</td><td>'+selfieOut+'</td><td><button class="btn btn-sm btn-secondary" onclick="showGPSDetail('+r.id+')">GPS</button></td></tr>';
+      }).join('');
+    }
+
+    async function showGPSDetail(attendanceId) {
+      const data = await apiFetch('/api/admin/attendance/'+attendanceId+'/detail');
+      if (!data || !data.success) return;
+      const r = data.record;
+      document.getElementById('gps-modal-title').textContent = r.full_name + ' - GPS Kayıtları';
+      document.getElementById('gps-info').innerHTML = '<p><strong>Lokasyon:</strong> '+r.location_name+' ('+r.loc_lat.toFixed(4)+', '+r.loc_lng.toFixed(4)+') • Yarıçap: '+r.radius_meters+'m</p>';
+      const tbody = document.getElementById('gps-tbody');
+      if (!data.gps_logs.length) { tbody.innerHTML='<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text-muted);">GPS kaydı yok</td></tr>'; }
+      else {
+        tbody.innerHTML = data.gps_logs.map(g => {
+          const t = new Date(g.logged_at).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+          const badge = g.is_within_zone?'<span class="badge badge-success">Alan İçi</span>':'<span class="badge badge-danger">Alan Dışı</span>';
+          return '<tr><td>'+t+'</td><td>'+g.latitude.toFixed(6)+'</td><td>'+g.longitude.toFixed(6)+'</td><td>'+g.distance_meters.toFixed(1)+'m</td><td>'+badge+'</td></tr>';
+        }).join('');
+      }
+      document.getElementById('gps-modal').style.display = 'flex';
+    }
+
+    function closeGPSModal() { document.getElementById('gps-modal').style.display='none'; }
+
+    function exportCSV() {
+      const date = document.getElementById('daily-date').value || document.getElementById('detail-date').value;
+      const rows = document.querySelectorAll('#daily-tbody tr, #detail-tbody tr');
+      let csv = 'Personel,Lokasyon,Giris,Cikis,Durum\n';
+      rows.forEach(r => {
+        const cells = r.querySelectorAll('td');
+        if (cells.length >= 5) {
+          csv += '"'+cells[0].textContent+'","'+cells[1].textContent+'","'+cells[2].textContent+'","'+cells[3].textContent+'","'+cells[4].textContent+'"\n';
+        }
+      });
+      const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'pdks_rapor_'+(date||'export')+'.csv';
+      a.click();
+    }
+
+    function logout() { localStorage.removeItem('pdks_admin_token'); localStorage.removeItem('pdks_admin_user'); window.location.href='login.html'; }
+
+    // Auto load
+    loadDaily();
+  </script>
+</body>
+</html>

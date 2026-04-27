@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDKS - Personel Yönetimi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+</head>
+<body>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sidebar-brand"><h2>PDKS</h2><small>Yönetim Paneli</small></div>
+      <nav class="sidebar-nav">
+        <a href="index.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>Dashboard</span></a>
+        <a href="personnel.html" class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg><span>Personel</span></a>
+        <a href="locations.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Lokasyonlar</span></a>
+        <a href="reports.html" class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10M12 20V4M6 20v-6"/></svg><span>Raporlar</span></a>
+      </nav>
+      <div class="sidebar-footer">
+        <div class="user-info"><div class="user-avatar">A</div><div><div class="name">Admin</div><div class="role">Yönetici</div></div></div>
+        <button class="btn btn-secondary btn-full btn-logout" onclick="logout()">Çıkış Yap</button>
+      </div>
+    </aside>
+    <main class="main-content">
+      <div class="page-header">
+        <div><h1>Personel Yönetimi</h1><p>Personel ekle, düzenle ve atamaları yönet</p></div>
+        <button class="btn btn-primary" onclick="showAddModal()">+ Yeni Personel</button>
+      </div>
+      <div class="filter-bar">
+        <input type="text" id="search-input" placeholder="İsim veya kullanıcı adı ara..." oninput="loadUsers()">
+        <select id="filter-role" onchange="loadUsers()">
+          <option value="">Tüm Roller</option>
+          <option value="employee">Personel</option>
+          <option value="hr">İK</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="card">
+        <div class="card-body" style="padding:0;">
+          <table>
+            <thead><tr><th>Ad Soyad</th><th>Kullanıcı Adı</th><th>Rol</th><th>Telefon</th><th>Durum</th><th>İşlem</th></tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="user-modal" class="modal-overlay" style="display:none;">
+    <div class="modal">
+      <div class="modal-header"><h3 id="modal-title">Yeni Personel</h3><button class="close-btn" onclick="closeModal()">×</button></div>
+      <div class="modal-body">
+        <input type="hidden" id="edit-id">
+        <div class="form-row">
+          <div class="form-group"><label>Ad Soyad *</label><input type="text" id="f-fullname" required></div>
+          <div class="form-group"><label>Kullanıcı Adı *</label><input type="text" id="f-username" required></div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Şifre *</label><input type="password" id="f-password" placeholder="En az 6 karakter"></div>
+          <div class="form-group"><label>Rol</label>
+            <select id="f-role"><option value="employee">Personel</option><option value="hr">İK</option><option value="admin">Admin</option></select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>E-posta</label><input type="email" id="f-email"></div>
+          <div class="form-group"><label>Telefon</label><input type="text" id="f-phone"></div>
+        </div>
+        <div id="form-error" class="alert alert-danger" style="display:none;"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" onclick="closeModal()">İptal</button>
+        <button class="btn btn-primary" onclick="saveUser()">Kaydet</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const TOKEN = localStorage.getItem('pdks_admin_token');
+    if (!TOKEN) window.location.href = 'login.html';
+
+    async function apiFetch(url, opts) {
+      const res = await fetch(url, { headers: { 'Authorization':'Bearer '+TOKEN, 'Content-Type':'application/json' }, ...opts });
+      if (res.status===401) { logout(); return null; }
+      return await res.json();
+    }
+
+    async function loadUsers() {
+      const search = document.getElementById('search-input').value;
+      const role = document.getElementById('filter-role').value;
+      let url = '/api/admin/users?limit=100';
+      if (search) url += '&search=' + encodeURIComponent(search);
+      if (role) url += '&role=' + role;
+      const data = await apiFetch(url);
+      if (!data) return;
+      const tbody = document.getElementById('users-tbody');
+      if (!data.users || data.users.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-muted);">Personel bulunamadı</td></tr>';
+        return;
+      }
+      tbody.innerHTML = data.users.map(u => {
+        const roleBadge = u.role==='admin'?'<span class="badge badge-warning">Admin</span>':u.role==='hr'?'<span class="badge badge-info">İK</span>':'<span class="badge badge-muted">Personel</span>';
+        const statusBadge = u.is_active?'<span class="badge badge-success">Aktif</span>':'<span class="badge badge-danger">Pasif</span>';
+        return '<tr><td>'+u.full_name+'</td><td>'+u.username+'</td><td>'+roleBadge+'</td><td>'+(u.phone||'-')+'</td><td>'+statusBadge+'</td><td><button class="btn btn-sm btn-secondary" onclick="editUser('+u.id+')">Düzenle</button> <button class="btn btn-sm btn-danger" onclick="toggleUser('+u.id+','+u.is_active+')">'+( u.is_active?'Pasif Yap':'Aktif Yap')+'</button></td></tr>';
+      }).join('');
+    }
+
+    function showAddModal() {
+      document.getElementById('modal-title').textContent = 'Yeni Personel';
+      document.getElementById('edit-id').value = '';
+      document.getElementById('f-fullname').value = '';
+      document.getElementById('f-username').value = '';
+      document.getElementById('f-password').value = '';
+      document.getElementById('f-password').placeholder = 'En az 6 karakter';
+      document.getElementById('f-role').value = 'employee';
+      document.getElementById('f-email').value = '';
+      document.getElementById('f-phone').value = '';
+      document.getElementById('form-error').style.display = 'none';
+      document.getElementById('user-modal').style.display = 'flex';
+    }
+
+    async function editUser(id) {
+      const data = await apiFetch('/api/admin/users?limit=100');
+      if (!data) return;
+      const u = data.users.find(x => x.id === id);
+      if (!u) return;
+      document.getElementById('modal-title').textContent = 'Personel Düzenle';
+      document.getElementById('edit-id').value = u.id;
+      document.getElementById('f-fullname').value = u.full_name;
+      document.getElementById('f-username').value = u.username;
+      document.getElementById('f-password').value = '';
+      document.getElementById('f-password').placeholder = 'Değiştirmek istemiyorsanız boş bırakın';
+      document.getElementById('f-role').value = u.role;
+      document.getElementById('f-email').value = u.email || '';
+      document.getElementById('f-phone').value = u.phone || '';
+      document.getElementById('form-error').style.display = 'none';
+      document.getElementById('user-modal').style.display = 'flex';
+    }
+
+    async function saveUser() {
+      const id = document.getElementById('edit-id').value;
+      const body = {
+        full_name: document.getElementById('f-fullname').value,
+        username: document.getElementById('f-username').value,
+        password: document.getElementById('f-password').value,
+        role: document.getElementById('f-role').value,
+        email: document.getElementById('f-email').value,
+        phone: document.getElementById('f-phone').value,
+        is_active: true
+      };
+      const errEl = document.getElementById('form-error');
+      if (!body.full_name || !body.username) { errEl.textContent='Ad ve kullanıcı adı zorunlu'; errEl.style.display='block'; return; }
+      if (!id && !body.password) { errEl.textContent='Şifre zorunlu'; errEl.style.display='block'; return; }
+
+      let result;
+      if (id) {
+        result = await apiFetch('/api/admin/users/'+id, { method:'PUT', body:JSON.stringify(body) });
+      } else {
+        result = await apiFetch('/api/admin/users', { method:'POST', body:JSON.stringify(body) });
+      }
+      if (result && result.success) { closeModal(); loadUsers(); }
+      else { errEl.textContent = result?.error || 'Hata oluştu'; errEl.style.display='block'; }
+    }
+
+    async function toggleUser(id, isActive) {
+      if (!confirm(isActive ? 'Personeli pasif yapmak istediğinize emin misiniz?' : 'Personeli aktif yapmak istediğinize emin misiniz?')) return;
+      if (isActive) {
+        await apiFetch('/api/admin/users/'+id, { method:'DELETE' });
+      } else {
+        await apiFetch('/api/admin/users/'+id, { method:'PUT', body:JSON.stringify({ is_active:true, full_name:'', email:'', phone:'', role:'employee' }) });
+      }
+      loadUsers();
+    }
+
+    function closeModal() { document.getElementById('user-modal').style.display='none'; }
+    function logout() { localStorage.removeItem('pdks_admin_token'); localStorage.removeItem('pdks_admin_user'); window.location.href='login.html'; }
+
+    loadUsers();
+  </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "pdks-server",
+  "version": "1.0.0",
+  "description": "PDKS - Personel Devam Kontrol Sistemi Backend",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "sql.js": "^1.11.0",
+    "jsonwebtoken": "^9.0.2",
+    "bcryptjs": "^2.4.3",
+    "multer": "^1.4.5-lts.1",
+    "cors": "^2.8.5",
+    "qrcode": "^1.5.4",
+    "uuid": "^10.0.0"
+  }
+}

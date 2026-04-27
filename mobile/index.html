@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a1a">
+  <meta name="description" content="PDKS - Personel Devam Kontrol Sistemi">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>PDKS - Personel Takip</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/mobile.css">
+</head>
+<body>
+  <!-- Splash Screen -->
+  <div id="splash-screen" class="screen active">
+    <div class="splash-content">
+      <div class="splash-icon">
+        <svg width="80" height="80" viewBox="0 0 80 80" fill="none">
+          <rect width="80" height="80" rx="20" fill="#FF6B00"/>
+          <path d="M20 25h15v15H20zM45 25h15v15H45zM20 45h15v15H20zM45 45h15v15H45z" fill="#1a1a1a" opacity="0.3"/>
+          <circle cx="40" cy="40" r="12" fill="#1a1a1a"/>
+          <path d="M34 40l4 4 8-8" stroke="#FF6B00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1 class="splash-title">PDKS</h1>
+      <p class="splash-subtitle">Personel Devam Kontrol Sistemi</p>
+      <div class="splash-loader"><div class="loader-bar"></div></div>
+    </div>
+  </div>
+
+  <!-- Login Screen -->
+  <div id="login-screen" class="screen">
+    <div class="login-container">
+      <div class="login-header">
+        <div class="login-icon">
+          <svg width="48" height="48" viewBox="0 0 80 80" fill="none">
+            <rect width="80" height="80" rx="20" fill="#FF6B00"/>
+            <circle cx="40" cy="40" r="12" fill="#1a1a1a"/>
+            <path d="M34 40l4 4 8-8" stroke="#FF6B00" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h2>PDKS</h2>
+        <p>Hesabınıza giriş yapın</p>
+      </div>
+      <form id="login-form" class="login-form">
+        <div class="input-group">
+          <label for="login-username">Kullanıcı Adı</label>
+          <input type="text" id="login-username" placeholder="Kullanıcı adınız" required autocomplete="username">
+        </div>
+        <div class="input-group">
+          <label for="login-password">Şifre</label>
+          <input type="password" id="login-password" placeholder="Şifreniz" required autocomplete="current-password">
+        </div>
+        <button type="submit" id="login-btn" class="btn-primary">
+          <span>Giriş Yap</span>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+        <div id="login-error" class="error-message" style="display:none;"></div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Screen -->
+  <div id="main-screen" class="screen">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-left">
+        <h1 class="header-title">PDKS</h1>
+      </div>
+      <div class="header-right">
+        <span id="user-name" class="user-name"></span>
+        <button id="logout-btn" class="btn-icon" title="Çıkış">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Status Card -->
+    <div class="status-section">
+      <div id="status-card" class="status-card status-none">
+        <div class="status-icon" id="status-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+        </div>
+        <div class="status-info">
+          <h3 id="status-title">Giriş Yapılmadı</h3>
+          <p id="status-detail">QR kodu taratarak giriş yapın</p>
+        </div>
+      </div>
+      <div id="gps-indicator" class="gps-indicator" style="display:none;">
+        <div class="gps-dot"></div>
+        <span>GPS Takip Aktif</span>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="actions-section">
+      <button id="btn-check-in" class="action-btn action-checkin" onclick="startCheckIn()">
+        <div class="action-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7zM14 14h3v3h-3z"/></svg>
+        </div>
+        <span>QR ile Giriş</span>
+        <small>QR taratın ve selfie çekin</small>
+      </button>
+      <button id="btn-check-out" class="action-btn action-checkout" onclick="startCheckOut()" style="display:none;">
+        <div class="action-icon">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </div>
+        <span>QR ile Çıkış</span>
+        <small>QR taratın ve selfie çekin</small>
+      </button>
+    </div>
+
+    <!-- History Section -->
+    <div class="history-section">
+      <h3 class="section-title">Son İşlemler</h3>
+      <div id="history-list" class="history-list">
+        <div class="empty-state">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18M8 14h.01M12 14h.01M16 14h.01M8 18h.01M12 18h.01"/></svg>
+          <p>Henüz kayıt bulunmuyor</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Scanner Modal -->
+  <div id="qr-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="qr-modal-title">QR Kod Tarat</h3>
+        <button class="btn-close" onclick="closeQRModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="qr-reader" class="qr-reader"></div>
+      <p class="qr-hint">QR kodu kamera çerçevesine hizalayın</p>
+    </div>
+  </div>
+
+  <!-- Selfie Modal -->
+  <div id="selfie-modal" class="modal" style="display:none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Selfie Çekin</h3>
+        <button class="btn-close" onclick="closeSelfieModal()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="selfie-container">
+        <video id="selfie-video" autoplay playsinline></video>
+        <canvas id="selfie-canvas" style="display:none;"></canvas>
+        <div id="selfie-preview" class="selfie-preview" style="display:none;">
+          <img id="selfie-img" alt="Selfie">
+        </div>
+      </div>
+      <div class="selfie-actions">
+        <button id="btn-capture" class="btn-capture" onclick="captureSelfie()">
+          <div class="capture-circle"></div>
+        </button>
+        <button id="btn-retake" class="btn-secondary" onclick="retakeSelfie()" style="display:none;">Tekrar Çek</button>
+        <button id="btn-confirm-selfie" class="btn-primary" onclick="confirmSelfie()" style="display:none;">Onayla</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Processing Modal -->
+  <div id="processing-modal" class="modal" style="display:none;">
+    <div class="modal-content processing-content">
+      <div class="processing-spinner"></div>
+      <h3 id="processing-text">İşleniyor...</h3>
+    </div>
+  </div>
+
+  <!-- Result Modal -->
+  <div id="result-modal" class="modal" style="display:none;">
+    <div class="modal-content result-content">
+      <div id="result-icon" class="result-icon"></div>
+      <h3 id="result-title"></h3>
+      <p id="result-message"></p>
+      <button class="btn-primary" onclick="closeResultModal()">Tamam</button>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/qrScanner.js"></script>
+  <script src="js/camera.js"></script>
+  <script src="js/gpsTracker.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
