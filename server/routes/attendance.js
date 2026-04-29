@@ -24,7 +24,10 @@ router.post('/check-in', authenticateToken, upload.single('selfie'), async (req,
     const existing = await db.get('SELECT * FROM attendance WHERE user_id = ? AND work_date = ? AND status = ?', [userId, today, 'checked_in']);
     if (existing) return res.status(400).json({ error: 'Bugun zaten giris yapmissiniz' });
     let selfiePath = null;
-    if (req.file) selfiePath = '/uploads/selfies/' + today + '/' + req.file.filename;
+    if (req.file) {
+      const b64 = req.file.buffer.toString('base64');
+      selfiePath = `data:${req.file.mimetype};base64,${b64}`;
+    }
     const now = new Date().toISOString();
     const result = await db.run('INSERT INTO attendance (user_id, location_id, work_date, check_in_time, check_in_lat, check_in_lng, check_in_selfie, is_gps_valid, status) VALUES (?,?,?,?,?,?,?,?,?) RETURNING id', [userId, location.id, today, now, lat, lng, selfiePath, 1, 'checked_in']);
     await db.run('INSERT INTO gps_logs (attendance_id, user_id, latitude, longitude, is_within_zone, distance_meters) VALUES (?,?,?,?,?,?)', [result.lastInsertRowid, userId, lat, lng, 1, gpsCheck.distance]);
@@ -49,7 +52,10 @@ router.post('/check-out', authenticateToken, upload.single('selfie'), async (req
     const attendance = await db.get('SELECT * FROM attendance WHERE user_id = ? AND work_date = ? AND status = ?', [userId, today, 'checked_in']);
     if (!attendance) return res.status(400).json({ error: 'Aktif giris kaydi bulunamadi' });
     let selfiePath = null;
-    if (req.file) selfiePath = '/uploads/selfies/' + today + '/' + req.file.filename;
+    if (req.file) {
+      const b64 = req.file.buffer.toString('base64');
+      selfiePath = `data:${req.file.mimetype};base64,${b64}`;
+    }
     const now = new Date().toISOString();
     await db.run('UPDATE attendance SET check_out_time = ?, check_out_lat = ?, check_out_lng = ?, check_out_selfie = ?, status = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?', [now, lat, lng, selfiePath, 'checked_out', attendance.id]);
     await db.run('INSERT INTO gps_logs (attendance_id, user_id, latitude, longitude, is_within_zone, distance_meters) VALUES (?,?,?,?,?,?)', [attendance.id, userId, lat, lng, gpsCheck.isWithin ? 1 : 0, gpsCheck.distance]);
