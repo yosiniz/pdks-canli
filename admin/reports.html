@@ -68,8 +68,18 @@
           <div class="card-header"><h3>Aylık Özet</h3></div>
           <div class="card-body" style="padding:0;">
             <table>
-              <thead><tr><th>Personel</th><th>Toplam Gün</th><th>Düzensiz Gün</th></tr></thead>
-              <tbody id="monthly-tbody"><tr><td colspan="3" style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</td></tr></tbody>
+              <thead><tr>
+                <th>Personel</th>
+                <th>Toplam Gün</th>
+                <th>Toplam Saat</th>
+                <th>Fazla Mesai</th>
+                <th>Maaş/Saatlik Ücret (₺)</th>
+                <th>Yol (₺)</th>
+                <th>Yemek (₺)</th>
+                <th>Mesai Ücreti (₺)</th>
+                <th>Net Hak Ediş (₺)</th>
+              </tr></thead>
+              <tbody id="monthly-tbody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -195,9 +205,19 @@
       const data = await apiFetch('/api/admin/reports/monthly?month='+month+'&year='+year);
       if (!data || !data.success) return;
       const tbody = document.getElementById('monthly-tbody');
-      if (!data.records.length) { tbody.innerHTML='<tr><td colspan="3" style="text-align:center;padding:40px;color:var(--text-muted);">Bu ay kayıt yok</td></tr>'; return; }
+      if (!data.records.length) { tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Bu ay kayıt yok</td></tr>'; return; }
       tbody.innerHTML = data.records.map(r => {
-        return '<tr><td>'+r.full_name+'</td><td>'+r.days_present+' gün</td><td>'+(r.irregular_days||0)+' gün</td></tr>';
+        return '<tr>' +
+          '<td>'+r.full_name+'</td>' +
+          '<td>'+r.days_present+' gün</td>' +
+          '<td>'+r.total_hours+' saat</td>' +
+          '<td>'+r.overtime_hours+' saat</td>' +
+          '<td>'+r.base_pay+' ₺</td>' +
+          '<td>'+r.travel_pay+' ₺</td>' +
+          '<td>'+r.food_pay+' ₺</td>' +
+          '<td>'+r.overtime_pay+' ₺</td>' +
+          '<td style="font-weight:bold; color:var(--success);">'+r.total_pay+' ₺</td>' +
+        '</tr>';
       }).join('');
     }
 
@@ -251,35 +271,36 @@
     }
 
     function exportExcel() {
-      const date = document.getElementById('daily-date').value || document.getElementById('detail-date').value;
-      const rows = document.querySelectorAll('#daily-tbody tr, #detail-tbody tr');
+      const isMonthly = document.getElementById('monthly-panel').style.display === 'block';
+      const date = isMonthly ? (document.getElementById('monthly-month').value + '-' + document.getElementById('monthly-year').value) : (document.getElementById('daily-date').value || document.getElementById('detail-date').value);
+      
+      const tbodySelector = isMonthly ? '#monthly-tbody tr' : '#daily-tbody tr, #detail-tbody tr';
+      const rows = document.querySelectorAll(tbodySelector);
       
       const data = [];
-      data.push(['Personel', 'Lokasyon', 'Giriş', 'Çıkış', 'Durum']); // Başlıklar
+      if (isMonthly) {
+        data.push(['Personel', 'Toplam Gün', 'Toplam Saat', 'Fazla Mesai', 'Maaş/Saatlik Ücret (₺)', 'Yol (₺)', 'Yemek (₺)', 'Mesai Ücreti (₺)', 'Net Hak Ediş (₺)']);
+      } else {
+        data.push(['Personel', 'Lokasyon', 'Giriş', 'Çıkış', 'Durum']);
+      }
       
       rows.forEach(r => {
         const cells = r.querySelectorAll('td');
-        if (cells.length >= 5 && cells[0].textContent !== 'Tarih seçin' && cells[0].textContent !== 'Kayıt bulunamadı' && cells[0].textContent !== 'Bu tarihte kayıt yok') {
-          data.push([
-            cells[0].textContent,
-            cells[1].textContent,
-            cells[2].textContent,
-            cells[3].textContent,
-            cells[4].textContent
-          ]);
+        if (cells.length > 1 && !cells[0].textContent.includes('bulunamadı') && !cells[0].textContent.includes('seçin') && !cells[0].textContent.includes('kayıt yok')) {
+          const rowData = [];
+          cells.forEach((c, idx) => {
+            if ((!isMonthly && idx < 5) || isMonthly) {
+              // Rakamlardan ' ₺' veya ' saat' veya ' gün' gibi metinleri temizlemeden de ekleyebiliriz veya temizleyebiliriz. SheetJS düz string olarak alır.
+              rowData.push(c.textContent.replace(' ₺', '').replace(' gün', '').replace(' saat', '').trim());
+            }
+          });
+          data.push(rowData);
         }
       });
       
-      // Veriyi Excel formatina cevir
       const ws = XLSX.utils.aoa_to_sheet(data);
-      
-      // Sütun genisliklerini ayarla
-      ws['!cols'] = [{wch:20}, {wch:15}, {wch:10}, {wch:10}, {wch:15}];
-      
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Rapor");
-      
-      // XLSX olarak indir
       XLSX.writeFile(wb, 'pdks_rapor_'+(date||'export')+'.xlsx');
     }
 

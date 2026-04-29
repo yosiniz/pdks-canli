@@ -56,6 +56,12 @@
           <div id="loc-map"></div>
         </div>
         <div class="form-group"><label>GPS Toleransı (metre)</label><input type="number" id="loc-radius" value="50" min="10" max="500" oninput="updateMapCircle()"></div>
+        <div class="form-row" style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px; flex-wrap: wrap;">
+          <h4 style="width:100%; margin-bottom:10px;">Part-Time Personel Ücretlendirmesi</h4>
+          <div class="form-group" style="flex: 1;"><label>Saatlik Ücret (₺)</label><input type="number" step="any" id="loc-hourly" value="0"></div>
+          <div class="form-group" style="flex: 1;"><label>Yol Ücreti (₺)</label><input type="number" step="any" id="loc-travel" value="0"></div>
+          <div class="form-group" style="flex: 1;"><label>Yemek Ücreti (₺)</label><input type="number" step="any" id="loc-food" value="0"></div>
+        </div>
         <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
           <input type="checkbox" id="loc-active" checked style="width:auto; margin:0;">
           <label for="loc-active" style="margin:0;">Aktif Lokasyon (Personeller kullanabilir)</label>
@@ -180,6 +186,9 @@
       document.getElementById('loc-lat').value = '';
       document.getElementById('loc-lng').value = '';
       document.getElementById('loc-radius').value = '50';
+      document.getElementById('loc-hourly').value = '0';
+      document.getElementById('loc-travel').value = '0';
+      document.getElementById('loc-food').value = '0';
       document.getElementById('loc-active').checked = true;
       document.getElementById('loc-error').style.display = 'none';
       document.getElementById('loc-modal').style.display = 'flex';
@@ -202,6 +211,9 @@
       document.getElementById('loc-lat').value = l.latitude;
       document.getElementById('loc-lng').value = l.longitude;
       document.getElementById('loc-radius').value = l.radius_meters;
+      document.getElementById('loc-hourly').value = l.hourly_rate || 0;
+      document.getElementById('loc-travel').value = l.travel_allowance || 0;
+      document.getElementById('loc-food').value = l.food_allowance || 0;
       document.getElementById('loc-active').checked = l.is_active === 1 || l.is_active === true;
       document.getElementById('loc-error').style.display = 'none';
       document.getElementById('loc-modal').style.display = 'flex';
@@ -221,6 +233,9 @@
         latitude: parseFloat(document.getElementById('loc-lat').value),
         longitude: parseFloat(document.getElementById('loc-lng').value),
         radius_meters: parseInt(document.getElementById('loc-radius').value),
+        hourly_rate: parseFloat(document.getElementById('loc-hourly').value),
+        travel_allowance: parseFloat(document.getElementById('loc-travel').value),
+        food_allowance: parseFloat(document.getElementById('loc-food').value),
         is_active: document.getElementById('loc-active').checked
       };
       const errEl = document.getElementById('loc-error');

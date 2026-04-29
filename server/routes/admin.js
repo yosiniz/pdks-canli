@@ -35,7 +35,7 @@ router.get('/users', async (req, res) => {
   try {
     const db = getDb();
     const { role, search } = req.query;
-    let sql = 'SELECT id, username, full_name, email, phone, role, is_active, created_at FROM users WHERE 1=1';
+    let sql = 'SELECT id, username, full_name, email, phone, role, is_active, created_at, employment_type, monthly_salary, monthly_travel, monthly_food, working_days_month, working_hours_day FROM users WHERE 1=1';
     const p = [];
     if (role) { p.push(role); sql += ' AND role=$' + p.length; }
     if (search) { p.push('%'+search+'%'); sql += ' AND (full_name LIKE $' + p.length + ' OR username LIKE $' + p.length + ')'; }
@@ -47,12 +47,15 @@ router.get('/users', async (req, res) => {
 router.post('/users', async (req, res) => {
   try {
     const db = getDb();
-    const { username, password, full_name, email, phone, role } = req.body;
+    const { username, password, full_name, email, phone, role, employment_type, monthly_salary, monthly_travel, monthly_food, working_days_month, working_hours_day } = req.body;
     if (!username || !password || !full_name) return res.status(400).json({ error: 'Zorunlu alanlar eksik' });
     const exists = await db.get('SELECT id FROM users WHERE username=$1', [username]);
     if (exists) return res.status(400).json({ error: 'Bu kullanici adi mevcut' });
     const hash = bcrypt.hashSync(password, 10);
-    const result = await db.run('INSERT INTO users (username, password_hash, full_name, email, phone, role) VALUES ($1,$2,$3,$4,$5,$6) RETURNING id', [username, hash, full_name, email||null, phone||null, role||'employee']);
+    const result = await db.run(
+      'INSERT INTO users (username, password_hash, full_name, email, phone, role, employment_type, monthly_salary, monthly_travel, monthly_food, working_days_month, working_hours_day) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12) RETURNING id',
+      [username, hash, full_name, email||null, phone||null, role||'employee', employment_type||'kadrolu', parseFloat(monthly_salary)||0, parseFloat(monthly_travel)||0, parseFloat(monthly_food)||0, parseInt(working_days_month)||26, parseInt(working_hours_day)||8]
+    );
     res.json({ success: true, message: 'Personel eklendi', id: result.lastInsertRowid });
   } catch (err) { console.error(err); res.status(500).json({ error: 'Sunucu hatasi' }); }
 });
@@ -60,12 +63,18 @@ router.post('/users', async (req, res) => {
 router.put('/users/:id', async (req, res) => {
   try {
     const db = getDb();
-    const { full_name, email, phone, role, is_active, password } = req.body;
+    const { full_name, email, phone, role, is_active, password, employment_type, monthly_salary, monthly_travel, monthly_food, working_days_month, working_hours_day } = req.body;
     if (password) {
       const hash = bcrypt.hashSync(password, 10);
-      await db.run('UPDATE users SET full_name=$1, email=$2, phone=$3, role=$4, is_active=$5, password_hash=$6, updated_at=CURRENT_TIMESTAMP WHERE id=$7', [full_name, email, phone, role, is_active?1:0, hash, req.params.id]);
+      await db.run(
+        'UPDATE users SET full_name=$1, email=$2, phone=$3, role=$4, is_active=$5, password_hash=$6, employment_type=$7, monthly_salary=$8, monthly_travel=$9, monthly_food=$10, working_days_month=$11, working_hours_day=$12, updated_at=CURRENT_TIMESTAMP WHERE id=$13',
+        [full_name, email, phone, role, is_active?1:0, hash, employment_type||'kadrolu', parseFloat(monthly_salary)||0, parseFloat(monthly_travel)||0, parseFloat(monthly_food)||0, parseInt(working_days_month)||26, parseInt(working_hours_day)||8, req.params.id]
+      );
     } else {
-      await db.run('UPDATE users SET full_name=$1, email=$2, phone=$3, role=$4, is_active=$5, updated_at=CURRENT_TIMESTAMP WHERE id=$6', [full_name, email, phone, role, is_active?1:0, req.params.id]);
+      await db.run(
+        'UPDATE users SET full_name=$1, email=$2, phone=$3, role=$4, is_active=$5, employment_type=$6, monthly_salary=$7, monthly_travel=$8, monthly_food=$9, working_days_month=$10, working_hours_day=$11, updated_at=CURRENT_TIMESTAMP WHERE id=$12',
+        [full_name, email, phone, role, is_active?1:0, employment_type||'kadrolu', parseFloat(monthly_salary)||0, parseFloat(monthly_travel)||0, parseFloat(monthly_food)||0, parseInt(working_days_month)||26, parseInt(working_hours_day)||8, req.params.id]
+      );
     }
     res.json({ success: true, message: 'Personel guncellendi' });
   } catch (err) { res.status(500).json({ error: 'Sunucu hatasi' }); }
@@ -88,10 +97,13 @@ router.get('/locations', async (req, res) => {
 router.post('/locations', async (req, res) => {
   try {
     const db = getDb();
-    const { name, address, latitude, longitude, radius_meters } = req.body;
+    const { name, address, latitude, longitude, radius_meters, hourly_rate, travel_allowance, food_allowance } = req.body;
     if (!name || !latitude || !longitude) return res.status(400).json({ error: 'Ad, enlem ve boylam gereklidir' });
     const { secret } = generateQRData(0);
-    const result = await db.run('INSERT INTO locations (name, address, latitude, longitude, radius_meters, qr_code, qr_secret) VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING id', [name, address||'', parseFloat(latitude), parseFloat(longitude), parseInt(radius_meters)||50, 'temp', secret]);
+    const result = await db.run(
+      'INSERT INTO locations (name, address, latitude, longitude, radius_meters, qr_code, qr_secret, hourly_rate, travel_allowance, food_allowance) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
+      [name, address||'', parseFloat(latitude), parseFloat(longitude), parseInt(radius_meters)||50, 'temp', secret, parseFloat(hourly_rate)||0, parseFloat(travel_allowance)||0, parseFloat(food_allowance)||0]
+    );
     const locId = result.lastInsertRowid;
     const real = generateQRData(locId);
     const qrVal = 'PDKS::' + locId + '::' + real.secret;
@@ -104,8 +116,11 @@ router.post('/locations', async (req, res) => {
 router.put('/locations/:id', async (req, res) => {
   try {
     const db = getDb();
-    const { name, address, latitude, longitude, radius_meters, is_active } = req.body;
-    await db.run('UPDATE locations SET name=$1, address=$2, latitude=$3, longitude=$4, radius_meters=$5, is_active=$6 WHERE id=$7', [name, address, parseFloat(latitude), parseFloat(longitude), parseInt(radius_meters)||50, is_active?1:0, parseInt(req.params.id)]);
+    const { name, address, latitude, longitude, radius_meters, is_active, hourly_rate, travel_allowance, food_allowance } = req.body;
+    await db.run(
+      'UPDATE locations SET name=$1, address=$2, latitude=$3, longitude=$4, radius_meters=$5, is_active=$6, hourly_rate=$7, travel_allowance=$8, food_allowance=$9 WHERE id=$10',
+      [name, address, parseFloat(latitude), parseFloat(longitude), parseInt(radius_meters)||50, is_active?1:0, parseFloat(hourly_rate)||0, parseFloat(travel_allowance)||0, parseFloat(food_allowance)||0, parseInt(req.params.id)]
+    );
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: 'Sunucu hatasi' }); }
 });
@@ -216,9 +231,87 @@ router.get('/reports/monthly', async (req, res) => {
     const month = req.query.month || (new Date().getMonth()+1);
     const start = year + '-' + String(month).padStart(2,'0') + '-01';
     const end = year + '-' + String(month).padStart(2,'0') + '-31';
-    const records = await db.all('SELECT a.user_id, u.full_name, COUNT(*) as days_present, SUM(CASE WHEN a.status=$1 THEN 1 ELSE 0 END) as irregular_days FROM attendance a JOIN users u ON a.user_id=u.id WHERE a.work_date BETWEEN $2 AND $3 GROUP BY a.user_id ORDER BY u.full_name', ['irregular', start, end]);
+
+    const attendances = await db.all(`
+      SELECT a.*, 
+             u.full_name, u.employment_type, u.monthly_salary, u.monthly_travel, u.monthly_food, u.working_days_month, u.working_hours_day,
+             l.hourly_rate as loc_hourly, l.travel_allowance as loc_travel, l.food_allowance as loc_food
+      FROM attendance a
+      JOIN users u ON a.user_id = u.id
+      JOIN locations l ON a.location_id = l.id
+      WHERE a.work_date BETWEEN ? AND ?
+      ORDER BY a.work_date ASC
+    `, [start, end]);
+
+    const userStats = {};
+
+    attendances.forEach(a => {
+      const uid = a.user_id;
+      if (!userStats[uid]) {
+        userStats[uid] = {
+          user_id: uid,
+          full_name: a.full_name,
+          employment_type: a.employment_type || 'kadrolu',
+          days_present: 0,
+          irregular_days: 0,
+          total_hours: 0,
+          overtime_hours: 0,
+          base_pay: 0,
+          travel_pay: 0,
+          food_pay: 0,
+          overtime_pay: 0,
+          total_pay: 0
+        };
+        if (userStats[uid].employment_type === 'kadrolu') {
+          userStats[uid].base_pay = parseFloat(a.monthly_salary) || 0;
+          userStats[uid].travel_pay = parseFloat(a.monthly_travel) || 0;
+          userStats[uid].food_pay = parseFloat(a.monthly_food) || 0;
+        }
+      }
+
+      const stats = userStats[uid];
+      stats.days_present++;
+      if (a.status === 'irregular') stats.irregular_days++;
+
+      let hours = 0;
+      if (a.check_in_time && a.check_out_time) {
+        const ms = new Date(a.check_out_time) - new Date(a.check_in_time);
+        hours = ms / 3600000;
+      }
+      stats.total_hours += hours;
+
+      if (stats.employment_type === 'parttime') {
+        const hRate = parseFloat(a.loc_hourly) || 0;
+        stats.base_pay += hours * hRate;
+        stats.travel_pay += parseFloat(a.loc_travel) || 0;
+        stats.food_pay += parseFloat(a.loc_food) || 0;
+      } else {
+        const dailyMax = parseInt(a.working_hours_day) || 8;
+        if (hours > dailyMax) {
+          const overtime = hours - dailyMax;
+          stats.overtime_hours += overtime;
+          const monthlySal = parseFloat(a.monthly_salary) || 0;
+          const workingDays = parseInt(a.working_days_month) || 26;
+          const hourlyRate = (monthlySal / (workingDays * dailyMax)) || 0;
+          stats.overtime_pay += (overtime * hourlyRate * 1.5);
+        }
+      }
+    });
+
+    const records = Object.values(userStats).map(s => {
+      s.total_pay = s.base_pay + s.travel_pay + s.food_pay + s.overtime_pay;
+      s.total_hours = parseFloat(s.total_hours.toFixed(2));
+      s.overtime_hours = parseFloat(s.overtime_hours.toFixed(2));
+      s.base_pay = parseFloat(s.base_pay.toFixed(2));
+      s.travel_pay = parseFloat(s.travel_pay.toFixed(2));
+      s.food_pay = parseFloat(s.food_pay.toFixed(2));
+      s.overtime_pay = parseFloat(s.overtime_pay.toFixed(2));
+      s.total_pay = parseFloat(s.total_pay.toFixed(2));
+      return s;
+    }).sort((a,b) => a.full_name.localeCompare(b.full_name));
+
     res.json({ success: true, year: parseInt(year), month: parseInt(month), records });
-  } catch (err) { res.status(500).json({ error: 'Sunucu hatasi' }); }
+  } catch (err) { console.error('Monthly report err:', err); res.status(500).json({ error: 'Sunucu hatasi' }); }
 });
 
 module.exports = router;

@@ -39,8 +39,8 @@
       <div class="card">
         <div class="card-body" style="padding:0;">
           <table>
-            <thead><tr><th>Ad Soyad</th><th>Kullanıcı Adı</th><th>Rol</th><th>Telefon</th><th>Durum</th><th>İşlem</th></tr></thead>
-            <tbody id="users-tbody"><tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</td></tr></tbody>
+            <thead><tr><th>Ad Soyad</th><th>Kullanıcı Adı</th><th>Tür</th><th>Rol</th><th>Telefon</th><th>Durum</th><th>İşlem</th></tr></thead>
+            <tbody id="users-tbody"><tr><td colspan="7" style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -66,6 +66,27 @@
         <div class="form-row">
           <div class="form-group"><label>E-posta</label><input type="email" id="f-email"></div>
           <div class="form-group"><label>Telefon</label><input type="text" id="f-phone"></div>
+        </div>
+        <div class="form-row" style="margin-top: 15px; border-top: 1px solid var(--border-color); padding-top: 15px;">
+          <div class="form-group"><label>İstihdam Türü</label>
+            <select id="f-emp-type" onchange="toggleEmpFields()">
+              <option value="kadrolu">Kadrolu</option>
+              <option value="parttime">Part-Time</option>
+            </select>
+          </div>
+        </div>
+        <div id="kadrolu-fields">
+          <div class="form-row">
+            <div class="form-group"><label>Aylık Maaş (₺)</label><input type="number" id="f-salary" value="0"></div>
+            <div class="form-group"><label>Aylık Yol (₺)</label><input type="number" id="f-travel" value="0"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Aylık Yemek (₺)</label><input type="number" id="f-food" value="0"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Aylık Çalışma Günü</label><input type="number" id="f-wdays" value="26"></div>
+            <div class="form-group"><label>Günlük Çalışma Saati</label><input type="number" id="f-whours" value="8"></div>
+          </div>
         </div>
         <div id="form-error" class="alert alert-danger" style="display:none;"></div>
       </div>
@@ -101,8 +122,9 @@
       }
       tbody.innerHTML = data.users.map(u => {
         const roleBadge = u.role==='admin'?'<span class="badge badge-warning">Admin</span>':u.role==='hr'?'<span class="badge badge-info">İK</span>':'<span class="badge badge-muted">Personel</span>';
+        const empBadge = u.employment_type==='parttime'?'<span class="badge" style="background:#f3e8ff;color:#7e22ce;">Part-Time</span>':'<span class="badge" style="background:#e0e7ff;color:#4338ca;">Kadrolu</span>';
         const statusBadge = u.is_active?'<span class="badge badge-success">Aktif</span>':'<span class="badge badge-danger">Pasif</span>';
-        return '<tr><td>'+u.full_name+'</td><td>'+u.username+'</td><td>'+roleBadge+'</td><td>'+(u.phone||'-')+'</td><td>'+statusBadge+'</td><td><button class="btn btn-sm btn-secondary" onclick="editUser('+u.id+')">Düzenle</button> <button class="btn btn-sm btn-danger" onclick="toggleUser('+u.id+','+u.is_active+')">'+( u.is_active?'Pasif Yap':'Aktif Yap')+'</button></td></tr>';
+        return '<tr><td>'+u.full_name+'</td><td>'+u.username+'</td><td>'+empBadge+'</td><td>'+roleBadge+'</td><td>'+(u.phone||'-')+'</td><td>'+statusBadge+'</td><td><button class="btn btn-sm btn-secondary" onclick="editUser('+u.id+')">Düzenle</button> <button class="btn btn-sm btn-danger" onclick="toggleUser('+u.id+','+u.is_active+')">'+( u.is_active?'Pasif Yap':'Aktif Yap')+'</button></td></tr>';
       }).join('');
     }
 
@@ -116,8 +138,20 @@
       document.getElementById('f-role').value = 'employee';
       document.getElementById('f-email').value = '';
       document.getElementById('f-phone').value = '';
+      document.getElementById('f-emp-type').value = 'kadrolu';
+      document.getElementById('f-salary').value = '0';
+      document.getElementById('f-travel').value = '0';
+      document.getElementById('f-food').value = '0';
+      document.getElementById('f-wdays').value = '26';
+      document.getElementById('f-whours').value = '8';
+      toggleEmpFields();
       document.getElementById('form-error').style.display = 'none';
       document.getElementById('user-modal').style.display = 'flex';
+    }
+
+    function toggleEmpFields() {
+      const isKadrolu = document.getElementById('f-emp-type').value === 'kadrolu';
+      document.getElementById('kadrolu-fields').style.display = isKadrolu ? 'block' : 'none';
     }
 
     async function editUser(id) {
@@ -134,6 +168,13 @@
       document.getElementById('f-role').value = u.role;
       document.getElementById('f-email').value = u.email || '';
       document.getElementById('f-phone').value = u.phone || '';
+      document.getElementById('f-emp-type').value = u.employment_type || 'kadrolu';
+      document.getElementById('f-salary').value = u.monthly_salary || 0;
+      document.getElementById('f-travel').value = u.monthly_travel || 0;
+      document.getElementById('f-food').value = u.monthly_food || 0;
+      document.getElementById('f-wdays').value = u.working_days_month || 26;
+      document.getElementById('f-whours').value = u.working_hours_day || 8;
+      toggleEmpFields();
       document.getElementById('form-error').style.display = 'none';
       document.getElementById('user-modal').style.display = 'flex';
     }
@@ -147,6 +188,12 @@
         role: document.getElementById('f-role').value,
         email: document.getElementById('f-email').value,
         phone: document.getElementById('f-phone').value,
+        employment_type: document.getElementById('f-emp-type').value,
+        monthly_salary: document.getElementById('f-salary').value,
+        monthly_travel: document.getElementById('f-travel').value,
+        monthly_food: document.getElementById('f-food').value,
+        working_days_month: document.getElementById('f-wdays').value,
+        working_hours_day: document.getElementById('f-whours').value,
         is_active: true
       };
       const errEl = document.getElementById('form-error');
