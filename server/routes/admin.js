@@ -97,12 +97,12 @@ router.get('/locations', async (req, res) => {
 router.post('/locations', async (req, res) => {
   try {
     const db = getDb();
-    const { name, address, latitude, longitude, radius_meters, hourly_rate, travel_allowance, food_allowance } = req.body;
+    const { name, address, latitude, longitude, radius_meters, hourly_rate, travel_allowance, food_allowance, overtime_multiplier } = req.body;
     if (!name || !latitude || !longitude) return res.status(400).json({ error: 'Ad, enlem ve boylam gereklidir' });
     const { secret } = generateQRData(0);
     const result = await db.run(
-      'INSERT INTO locations (name, address, latitude, longitude, radius_meters, qr_code, qr_secret, hourly_rate, travel_allowance, food_allowance) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) RETURNING id',
-      [name, address||'', parseFloat(latitude), parseFloat(longitude), parseInt(radius_meters)||50, 'temp', secret, parseFloat(hourly_rate)||0, parseFloat(travel_allowance)||0, parseFloat(food_allowance)||0]
+      'INSERT INTO locations (name, address, latitude, longitude, radius_meters, qr_code, qr_secret, hourly_rate, travel_allowance, food_allowance, overtime_multiplier) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) RETURNING id',
+      [name, address||'', parseFloat(latitude), parseFloat(longitude), parseInt(radius_meters)||50, 'temp', secret, parseFloat(hourly_rate)||0, parseFloat(travel_allowance)||0, parseFloat(food_allowance)||0, parseFloat(overtime_multiplier)||1]
     );
     const locId = result.lastInsertRowid;
     const real = generateQRData(locId);
@@ -116,10 +116,10 @@ router.post('/locations', async (req, res) => {
 router.put('/locations/:id', async (req, res) => {
   try {
     const db = getDb();
-    const { name, address, latitude, longitude, radius_meters, is_active, hourly_rate, travel_allowance, food_allowance } = req.body;
+    const { name, address, latitude, longitude, radius_meters, is_active, hourly_rate, travel_allowance, food_allowance, overtime_multiplier } = req.body;
     await db.run(
-      'UPDATE locations SET name=$1, address=$2, latitude=$3, longitude=$4, radius_meters=$5, is_active=$6, hourly_rate=$7, travel_allowance=$8, food_allowance=$9 WHERE id=$10',
-      [name, address, parseFloat(latitude), parseFloat(longitude), parseInt(radius_meters)||50, is_active?1:0, parseFloat(hourly_rate)||0, parseFloat(travel_allowance)||0, parseFloat(food_allowance)||0, parseInt(req.params.id)]
+      'UPDATE locations SET name=$1, address=$2, latitude=$3, longitude=$4, radius_meters=$5, is_active=$6, hourly_rate=$7, travel_allowance=$8, food_allowance=$9, overtime_multiplier=$10 WHERE id=$11',
+      [name, address, parseFloat(latitude), parseFloat(longitude), parseInt(radius_meters)||50, is_active?1:0, parseFloat(hourly_rate)||0, parseFloat(travel_allowance)||0, parseFloat(food_allowance)||0, parseFloat(overtime_multiplier)||1, parseInt(req.params.id)]
     );
     res.json({ success: true });
   } catch (err) { res.status(500).json({ error: 'Sunucu hatasi' }); }
@@ -235,7 +235,7 @@ router.get('/reports/monthly', async (req, res) => {
     const attendances = await db.all(`
       SELECT a.*, 
              u.full_name, u.employment_type, u.monthly_salary, u.monthly_travel, u.monthly_food, u.working_days_month, u.working_hours_day,
-             l.hourly_rate as loc_hourly, l.travel_allowance as loc_travel, l.food_allowance as loc_food
+             l.hourly_rate as loc_hourly, l.travel_allowance as loc_travel, l.food_allowance as loc_food, l.overtime_multiplier as loc_multiplier
       FROM attendance a
       JOIN users u ON a.user_id = u.id
       JOIN locations l ON a.location_id = l.id
@@ -293,7 +293,8 @@ router.get('/reports/monthly', async (req, res) => {
           const monthlySal = parseFloat(a.monthly_salary) || 0;
           const workingDays = parseInt(a.working_days_month) || 26;
           const hourlyRate = (monthlySal / (workingDays * dailyMax)) || 0;
-          stats.overtime_pay += (overtime * hourlyRate * 1.5);
+          const multiplier = parseFloat(a.loc_multiplier) || 1;
+          stats.overtime_pay += (overtime * hourlyRate * multiplier);
         }
       }
     });
