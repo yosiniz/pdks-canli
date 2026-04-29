@@ -13,10 +13,10 @@ router.get('/dashboard', async (req, res) => {
   try {
     const db = getDb();
     const today = new Date().toISOString().split('T')[0];
-    const totalUsers = await db.get('SELECT COUNT(*) as c FROM users WHERE is_active=1 AND role=$1', ['employee']);
-    const checkedIn = await db.get('SELECT COUNT(*) as c FROM attendance WHERE work_date=$1 AND status=$2', [today, 'checked_in']);
-    const checkedOut = await db.get('SELECT COUNT(*) as c FROM attendance WHERE work_date=$1 AND status=$3', [today, 'checked_out']);
-    const irregular = await db.get('SELECT COUNT(*) as c FROM attendance WHERE work_date=$1 AND status=$4', [today, 'irregular']);
+    const totalUsers = await db.get('SELECT COUNT(*) as c FROM users WHERE is_active=1 AND role=?', ['employee']);
+    const checkedIn = await db.get('SELECT COUNT(*) as c FROM attendance WHERE work_date=? AND status=?', [today, 'checked_in']);
+    const checkedOut = await db.get('SELECT COUNT(*) as c FROM attendance WHERE work_date=? AND status=?', [today, 'checked_out']);
+    const irregular = await db.get('SELECT COUNT(*) as c FROM attendance WHERE work_date=? AND status=?', [today, 'irregular']);
     const totalLoc = await db.get('SELECT COUNT(*) as c FROM locations WHERE is_active=1');
     const recent = await db.all(`
       SELECT a.*, u.full_name, l.name as location_name,
