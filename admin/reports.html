@@ -27,14 +27,14 @@
     <main class="main-content">
       <div class="page-header">
         <div><h1>Raporlar</h1><p>Devam kayıtlarını görüntüleyin ve filtreleyin</p></div>
-        <button class="btn btn-primary" onclick="exportExcel()" style="background-color: #217346; border-color: #217346; box-shadow: 0 4px 12px rgba(33, 115, 70, 0.3);">📥 Excel İndir</button>
+        <button class="btn btn-primary" onclick="exportExcel()" id="excel-btn" style="background:#16a34a;border-color:#16a34a;box-shadow:0 4px 12px rgba(22,163,74,0.3);">📥 Excel İndir</button>
       </div>
 
-      <!-- Tab Buttons -->
-      <div style="display:flex;gap:8px;margin-bottom:20px;">
-        <button class="btn btn-primary" id="tab-daily" onclick="switchTab('daily')">Günlük Rapor</button>
-        <button class="btn btn-secondary" id="tab-monthly" onclick="switchTab('monthly')">Aylık Rapor</button>
-        <button class="btn btn-secondary" id="tab-detail" onclick="switchTab('detail')">Detaylı Kayıtlar</button>
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab-btn active" id="tab-daily" onclick="switchTab('daily')">Günlük Rapor</button>
+        <button class="tab-btn" id="tab-monthly" onclick="switchTab('monthly')">Aylık Rapor</button>
+        <button class="tab-btn" id="tab-detail" onclick="switchTab('detail')">Detaylı Kayıtlar</button>
       </div>
 
       <!-- Daily Report -->
@@ -153,7 +153,7 @@
       <div id="image-modal" class="modal-overlay" style="display:none; z-index:9999;" onclick="closeImageModal()">
         <div style="position:relative; margin:auto; max-width:90vw; max-height:90vh;" onclick="event.stopPropagation()">
           <img id="enlarged-image" src="" style="max-width:100%; max-height:90vh; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); object-fit:contain;">
-          <button class="close-btn" style="position:absolute; top:-15px; right:-15px; background:#FF6B00; color:#fff; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px;" onclick="closeImageModal()">×</button>
+          <button class="close-btn" style="position:absolute;top:-14px;right:-14px;background:var(--accent);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:18px;" onclick="closeImageModal()">×</button>
         </div>
       </div>
     </main>
@@ -209,9 +209,9 @@
       document.getElementById('daily-panel').style.display = tab==='daily'?'block':'none';
       document.getElementById('monthly-panel').style.display = tab==='monthly'?'block':'none';
       document.getElementById('detail-panel').style.display = tab==='detail'?'block':'none';
-      document.getElementById('tab-daily').className = 'btn '+(tab==='daily'?'btn-primary':'btn-secondary');
-      document.getElementById('tab-monthly').className = 'btn '+(tab==='monthly'?'btn-primary':'btn-secondary');
-      document.getElementById('tab-detail').className = 'btn '+(tab==='detail'?'btn-primary':'btn-secondary');
+      document.getElementById('tab-daily').className = 'tab-btn '+(tab==='daily'?'active':'');
+      document.getElementById('tab-monthly').className = 'tab-btn '+(tab==='monthly'?'active':'');
+      document.getElementById('tab-detail').className = 'tab-btn '+(tab==='detail'?'active':'');
       if (tab==='daily') loadDaily();
       if (tab==='monthly') loadMonthly();
       if (tab==='detail') loadDetail();
