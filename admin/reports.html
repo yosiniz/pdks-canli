@@ -6,6 +6,8 @@
   <title>PDKS - Raporlar</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/admin.css">
+  <!-- Excel disari aktarma icin SheetJS kütüphanesi -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <div class="app-layout">
@@ -25,7 +27,7 @@
     <main class="main-content">
       <div class="page-header">
         <div><h1>Raporlar</h1><p>Devam kayıtlarını görüntüleyin ve filtreleyin</p></div>
-        <button class="btn btn-primary" onclick="exportCSV()">📥 CSV İndir</button>
+        <button class="btn btn-primary" onclick="exportExcel()" style="background-color: #217346; border-color: #217346; box-shadow: 0 4px 12px rgba(33, 115, 70, 0.3);">📥 Excel İndir</button>
       </div>
 
       <!-- Tab Buttons -->
@@ -248,21 +250,37 @@
       document.getElementById('image-modal').style.display = 'none';
     }
 
-    function exportCSV() {
+    function exportExcel() {
       const date = document.getElementById('daily-date').value || document.getElementById('detail-date').value;
       const rows = document.querySelectorAll('#daily-tbody tr, #detail-tbody tr');
-      let csv = 'Personel,Lokasyon,Giris,Cikis,Durum\n';
+      
+      const data = [];
+      data.push(['Personel', 'Lokasyon', 'Giriş', 'Çıkış', 'Durum']); // Başlıklar
+      
       rows.forEach(r => {
         const cells = r.querySelectorAll('td');
-        if (cells.length >= 5) {
-          csv += '"'+cells[0].textContent+'","'+cells[1].textContent+'","'+cells[2].textContent+'","'+cells[3].textContent+'","'+cells[4].textContent+'"\n';
+        if (cells.length >= 5 && cells[0].textContent !== 'Tarih seçin' && cells[0].textContent !== 'Kayıt bulunamadı' && cells[0].textContent !== 'Bu tarihte kayıt yok') {
+          data.push([
+            cells[0].textContent,
+            cells[1].textContent,
+            cells[2].textContent,
+            cells[3].textContent,
+            cells[4].textContent
+          ]);
         }
       });
-      const blob = new Blob(['\ufeff'+csv], {type:'text/csv;charset=utf-8;'});
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = 'pdks_rapor_'+(date||'export')+'.csv';
-      a.click();
+      
+      // Veriyi Excel formatina cevir
+      const ws = XLSX.utils.aoa_to_sheet(data);
+      
+      // Sütun genisliklerini ayarla
+      ws['!cols'] = [{wch:20}, {wch:15}, {wch:10}, {wch:10}, {wch:15}];
+      
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, "Rapor");
+      
+      // XLSX olarak indir
+      XLSX.writeFile(wb, 'pdks_rapor_'+(date||'export')+'.xlsx');
     }
 
     function logout() { localStorage.removeItem('pdks_admin_token'); localStorage.removeItem('pdks_admin_user'); window.location.href='login.html'; }
