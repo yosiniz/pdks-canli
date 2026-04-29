@@ -107,6 +107,14 @@
           </div>
         </div>
       </div>
+
+      <!-- Image Modal -->
+      <div id="image-modal" class="modal-overlay" style="display:none; z-index:9999;" onclick="closeImageModal()">
+        <div style="position:relative; margin:auto; max-width:90vw; max-height:90vh;" onclick="event.stopPropagation()">
+          <img id="enlarged-image" src="" style="max-width:100%; max-height:90vh; border-radius:8px; box-shadow:0 10px 30px rgba(0,0,0,0.5); object-fit:contain;">
+          <button class="close-btn" style="position:absolute; top:-15px; right:-15px; background:#FF6B00; color:#fff; border:none; border-radius:50%; width:30px; height:30px; cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:20px;" onclick="closeImageModal()">×</button>
+        </div>
+      </div>
     </main>
   </div>
 
@@ -166,7 +174,7 @@
           gpsStatus = '<span class="badge badge-danger" title="Sinyal Yok">✗</span>';
         }
 
-        const selfie = r.check_in_selfie?'<img src="'+r.check_in_selfie+'" class="selfie-thumb">':'-';
+        const selfie = r.check_in_selfie?'<img src="'+r.check_in_selfie+'" class="selfie-thumb" onclick="showImage(\''+r.check_in_selfie+'\')" style="cursor:zoom-in;">':'-';
         return '<tr><td>'+r.full_name+'</td><td>'+r.location_name+'</td><td>'+inT+'</td><td>'+outT+'</td><td>'+badge+'</td><td>'+gpsStatus+'</td><td>'+selfie+'</td></tr>';
       }).join('');
     }
@@ -205,8 +213,8 @@
         const inT = r.check_in_time?new Date(r.check_in_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';
         const outT = r.check_out_time?new Date(r.check_out_time).toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):'-';
         const badge = r.status==='checked_in'?'<span class="badge badge-success">Mesaide</span>':r.status==='checked_out'?'<span class="badge badge-info">Çıkış</span>':'<span class="badge badge-danger">Düzensiz</span>';
-        const selfieIn = r.check_in_selfie?'<img src="'+r.check_in_selfie+'" class="selfie-thumb">':'-';
-        const selfieOut = r.check_out_selfie?'<img src="'+r.check_out_selfie+'" class="selfie-thumb">':'-';
+        const selfieIn = r.check_in_selfie?'<img src="'+r.check_in_selfie+'" class="selfie-thumb" onclick="showImage(\''+r.check_in_selfie+'\')" style="cursor:zoom-in;">':'-';
+        const selfieOut = r.check_out_selfie?'<img src="'+r.check_out_selfie+'" class="selfie-thumb" onclick="showImage(\''+r.check_out_selfie+'\')" style="cursor:zoom-in;">':'-';
         return '<tr><td>'+r.full_name+'</td><td>'+r.location_name+'</td><td>'+inT+'</td><td>'+outT+'</td><td>'+badge+'</td><td>'+selfieIn+'</td><td>'+selfieOut+'</td><td><button class="btn btn-sm btn-secondary" onclick="showGPSDetail('+r.id+')">GPS</button></td></tr>';
       }).join('');
     }
@@ -230,6 +238,15 @@
     }
 
     function closeGPSModal() { document.getElementById('gps-modal').style.display='none'; }
+
+    function showImage(src) {
+      document.getElementById('enlarged-image').src = src;
+      document.getElementById('image-modal').style.display = 'flex';
+    }
+
+    function closeImageModal() {
+      document.getElementById('image-modal').style.display = 'none';
+    }
 
     function exportCSV() {
       const date = document.getElementById('daily-date').value || document.getElementById('detail-date').value;
