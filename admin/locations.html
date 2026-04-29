@@ -56,6 +56,10 @@
           <div id="loc-map"></div>
         </div>
         <div class="form-group"><label>GPS Toleransı (metre)</label><input type="number" id="loc-radius" value="50" min="10" max="500" oninput="updateMapCircle()"></div>
+        <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
+          <input type="checkbox" id="loc-active" checked style="width:auto; margin:0;">
+          <label for="loc-active" style="margin:0;">Aktif Lokasyon (Personeller kullanabilir)</label>
+        </div>
         <div id="loc-error" class="alert alert-danger" style="display:none;"></div>
       </div>
       <div class="modal-footer">
@@ -176,6 +180,7 @@
       document.getElementById('loc-lat').value = '';
       document.getElementById('loc-lng').value = '';
       document.getElementById('loc-radius').value = '50';
+      document.getElementById('loc-active').checked = true;
       document.getElementById('loc-error').style.display = 'none';
       document.getElementById('loc-modal').style.display = 'flex';
       
@@ -197,6 +202,7 @@
       document.getElementById('loc-lat').value = l.latitude;
       document.getElementById('loc-lng').value = l.longitude;
       document.getElementById('loc-radius').value = l.radius_meters;
+      document.getElementById('loc-active').checked = l.is_active === 1 || l.is_active === true;
       document.getElementById('loc-error').style.display = 'none';
       document.getElementById('loc-modal').style.display = 'flex';
 
@@ -215,7 +221,7 @@
         latitude: parseFloat(document.getElementById('loc-lat').value),
         longitude: parseFloat(document.getElementById('loc-lng').value),
         radius_meters: parseInt(document.getElementById('loc-radius').value),
-        is_active: true
+        is_active: document.getElementById('loc-active').checked
       };
       const errEl = document.getElementById('loc-error');
       if (!body.name || isNaN(body.latitude) || isNaN(body.longitude)) { errEl.textContent='Ad, enlem ve boylam zorunlu'; errEl.style.display='block'; return; }
