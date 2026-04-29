@@ -106,16 +106,19 @@ module.exports = {
   query,
   initializeDatabase,
   getDb: () => ({
-    get: async (sql, params) => {
-      const res = await query(sql.replace(/\?/g, (val, i) => `$${i + 1}`), params);
+    get: async (sql, params = []) => {
+      let idx = 1;
+      const res = await query(sql.replace(/\?/g, () => `$${idx++}`), params);
       return res.rows[0];
     },
-    all: async (sql, params) => {
-      const res = await query(sql.replace(/\?/g, (val, i) => `$${i + 1}`), params);
+    all: async (sql, params = []) => {
+      let idx = 1;
+      const res = await query(sql.replace(/\?/g, () => `$${idx++}`), params);
       return res.rows;
     },
-    run: async (sql, params) => {
-      const res = await query(sql.replace(/\?/g, (val, i) => `$${i + 1}`), params);
+    run: async (sql, params = []) => {
+      let idx = 1;
+      const res = await query(sql.replace(/\?/g, () => `$${idx++}`), params);
       return { lastInsertRowid: res.rows[0]?.id || null };
     }
   })
