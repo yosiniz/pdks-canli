@@ -34,6 +34,28 @@ app.use((err, req, res, next) => {
 // Start server after DB init
 async function start() {
   await initializeDatabase();
+  
+  // Auto-Checkout Cron (15 saniyede bir calisir)
+  setInterval(async () => {
+    try {
+      const { getDb } = require('./config/database');
+      const db = getDb();
+      if (!db) return;
+      
+      // 60 saniyedir sinyal alinamayan (telefonu kapanmis veya arka planda durdurulmus) kisileri otomatik cikar
+      await db.run(`
+        UPDATE attendance 
+        SET status = 'checked_out', 
+            check_out_time = CURRENT_TIMESTAMP, 
+            updated_at = CURRENT_TIMESTAMP 
+        WHERE (status = 'checked_in' OR status = 'irregular') 
+        AND EXTRACT(EPOCH FROM (now() - COALESCE(updated_at, check_in_time))) > 60
+      `);
+    } catch (err) {
+      console.error('Auto-checkout cron hatasi:', err);
+    }
+  }, 15000);
+
   app.listen(PORT, () => {
     console.log('');
     console.log('========================================');

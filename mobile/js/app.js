@@ -138,13 +138,32 @@ async function loadHistory() {
     return;
   }
 
-  list.innerHTML = result.records.map(r => {
-    const dateStr = new Date(r.work_date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short' });
-    const inTime = r.check_in_time ? new Date(r.check_in_time).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
-    const outTime = r.check_out_time ? new Date(r.check_out_time).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
-    const dotClass = r.status === 'irregular' ? 'irregular' : (r.status === 'checked_out' ? 'out' : 'in');
-    return '<div class="history-item"><div class="history-dot ' + dotClass + '"></div><div class="history-info"><div class="h-title">' + r.location_name + '</div><div class="h-sub">' + inTime + ' - ' + outTime + '</div></div><div class="history-time">' + dateStr + '</div></div>';
-  }).join('');
+  // Sadece son 5 kaydi goster ana ekranda
+  list.innerHTML = result.records.slice(0, 5).map(r => buildHistoryHTML(r)).join('');
+}
+
+async function showHistoryScreen() {
+  showScreen('history-screen');
+  const list = document.getElementById('full-history-list');
+  list.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-muted);">Yükleniyor...</div>';
+  
+  // limit=1000 ile tum gecmisi cek
+  const result = await API.getMyHistory(1, 1000);
+  if (!result.success || !result.records || result.records.length === 0) {
+    list.innerHTML = '<div class="empty-state"><p>Geçmiş kayıt bulunmuyor.</p></div>';
+    return;
+  }
+  
+  list.innerHTML = result.records.map(r => buildHistoryHTML(r)).join('');
+}
+
+function buildHistoryHTML(r) {
+  const dateStr = new Date(r.work_date).toLocaleDateString('tr-TR', { day: '2-digit', month: 'short', year: 'numeric' });
+  const inTime = r.check_in_time ? new Date(r.check_in_time).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+  const outTime = r.check_out_time ? new Date(r.check_out_time).toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+  const dotClass = r.status === 'irregular' ? 'irregular' : (r.status === 'checked_out' ? 'out' : 'in');
+  
+  return '<div class="history-item" style="margin-bottom:10px;"><div class="history-dot ' + dotClass + '"></div><div class="history-info"><div class="h-title">' + r.location_name + '</div><div class="h-sub">' + inTime + ' - ' + outTime + '</div></div><div class="history-time">' + dateStr + '</div></div>';
 }
 
 // ====== CHECK-IN FLOW ======

@@ -123,6 +123,23 @@
           <p>Henüz kayıt bulunmuyor</p>
         </div>
       </div>
+      <button class="btn-secondary" style="width:100%; margin-top:10px;" onclick="showHistoryScreen()">Tüm Geçmişi Gör (Rapor)</button>
+    </div>
+  </div>
+
+  <!-- History Screen (Full Log) -->
+  <div id="history-screen" class="screen">
+    <header class="app-header">
+      <div class="header-left">
+        <button class="btn-icon" onclick="showScreen('main-screen')" style="margin-right:10px;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+        </button>
+        <h1 class="header-title">Geçmiş Kayıtlarım</h1>
+      </div>
+    </header>
+    <div style="padding: 20px; overflow-y:auto; height:calc(100vh - 60px);">
+      <p style="color:var(--text-secondary); font-size:14px; margin-bottom:15px; line-height:1.4;">Tüm giriş ve çıkış loglarınız aşağıdadır. İstenildiğinde bu ekranı yetkililere gösterebilirsiniz.</p>
+      <div id="full-history-list" class="history-list"></div>
     </div>
   </div>
 
