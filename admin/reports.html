@@ -56,7 +56,7 @@
 
       <!-- Monthly Report -->
       <div id="monthly-panel" style="display:none;">
-        <div class="card" style="margin-bottom: 20px; background: #f8fafc; border: 1px solid var(--border-color);">
+        <div class="card" style="margin-bottom: 20px;">
           <div class="card-body" style="padding: 15px;">
             <h4 style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Gelişmiş Filtreler</h4>
             <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
@@ -93,7 +93,7 @@
                 <th onclick="sortTable(8)" style="cursor:pointer;" title="Sıralamak için tıklayın">Net Hak Ediş (₺) ↕</th>
               </tr></thead>
               <tbody id="monthly-tbody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</td></tr></tbody>
-              <tfoot id="monthly-tfoot" style="background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #cbd5e1;"></tfoot>
+              <tfoot id="monthly-tfoot" style="background-color: var(--bg-card-hover); font-weight: bold; border-top: 2px solid var(--border);"></tfoot>
             </table>
           </div>
         </div>
@@ -101,7 +101,7 @@
 
       <!-- Detail Panel -->
       <div id="detail-panel" style="display:none;">
-        <div class="card" style="margin-bottom: 20px; background: #f8fafc; border: 1px solid var(--border-color);">
+        <div class="card" style="margin-bottom: 20px;">
           <div class="card-body" style="padding: 15px;">
             <h4 style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Gelişmiş Filtreler</h4>
             <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
@@ -319,7 +319,7 @@
 
       // Render Footer Summary
       tfoot.innerHTML = '<tr>' +
-        '<td style="color:var(--text-main);">GENEL TOPLAM</td>' +
+        '<td style="color:var(--orange-500);">GENEL TOPLAM</td>' +
         '<td>'+sumDays+' gün</td>' +
         '<td>'+sumHours.toFixed(2)+' saat</td>' +
         '<td>'+sumOvertime.toFixed(2)+' saat</td>' +
@@ -327,7 +327,7 @@
         '<td>'+sumTravel.toFixed(2)+' ₺</td>' +
         '<td>'+sumFood.toFixed(2)+' ₺</td>' +
         '<td>'+sumOvtPay.toFixed(2)+' ₺</td>' +
-        '<td style="font-size:15px; color:#16a34a;">'+sumTotal.toFixed(2)+' ₺</td>' +
+        '<td style="font-size:15px; color:var(--success);">'+sumTotal.toFixed(2)+' ₺</td>' +
         '</tr>';
     }
 
