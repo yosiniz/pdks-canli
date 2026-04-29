@@ -183,14 +183,17 @@ router.post('/assignments', async (req, res) => {
 router.get('/attendance', async (req, res) => {
   try {
     const db = getDb();
-    const { date, user_id, location_id, status } = req.query;
+    const { date, start_date, end_date, user_id, location_id, status, employment_type } = req.query;
     let sql = 'SELECT a.*, u.full_name, l.name as location_name FROM attendance a JOIN users u ON a.user_id=u.id JOIN locations l ON a.location_id=l.id WHERE 1=1';
     const p = [];
     if (date) { p.push(date); sql += ' AND a.work_date=$' + p.length; }
+    if (start_date) { p.push(start_date); sql += ' AND a.work_date>=$' + p.length; }
+    if (end_date) { p.push(end_date); sql += ' AND a.work_date<=$' + p.length; }
     if (user_id) { p.push(user_id); sql += ' AND a.user_id=$' + p.length; }
     if (location_id) { p.push(location_id); sql += ' AND a.location_id=$' + p.length; }
     if (status) { p.push(status); sql += ' AND a.status=$' + p.length; }
-    sql += ' ORDER BY a.work_date DESC, a.id DESC LIMIT 100';
+    if (employment_type) { p.push(employment_type); sql += ' AND u.employment_type=$' + p.length; }
+    sql += ' ORDER BY a.work_date DESC, a.id DESC LIMIT 300';
     res.json({ success: true, records: await db.all(sql, p) });
   } catch (err) { res.status(500).json({ error: 'Sunucu hatasi' }); }
 });
@@ -229,10 +232,10 @@ router.get('/reports/monthly', async (req, res) => {
     const db = getDb();
     const year = req.query.year || new Date().getFullYear();
     const month = req.query.month || (new Date().getMonth()+1);
-    const start = year + '-' + String(month).padStart(2,'0') + '-01';
-    const end = year + '-' + String(month).padStart(2,'0') + '-31';
+    const start = req.query.start_date || (year + '-' + String(month).padStart(2,'0') + '-01');
+    const end = req.query.end_date || (year + '-' + String(month).padStart(2,'0') + '-31');
 
-    const attendances = await db.all(`
+    let sql = `
       SELECT a.*, 
              u.full_name, u.employment_type, u.monthly_salary, u.monthly_travel, u.monthly_food, u.working_days_month, u.working_hours_day,
              l.hourly_rate as loc_hourly, l.travel_allowance as loc_travel, l.food_allowance as loc_food, l.overtime_multiplier as loc_multiplier
@@ -240,8 +243,25 @@ router.get('/reports/monthly', async (req, res) => {
       JOIN users u ON a.user_id = u.id
       JOIN locations l ON a.location_id = l.id
       WHERE a.work_date BETWEEN ? AND ?
-      ORDER BY a.work_date ASC
-    `, [start, end]);
+    `;
+    const params = [start, end];
+
+    if (req.query.location_id) {
+      sql += ' AND a.location_id = ?';
+      params.push(req.query.location_id);
+    }
+    if (req.query.user_id) {
+      sql += ' AND a.user_id = ?';
+      params.push(req.query.user_id);
+    }
+    if (req.query.employment_type) {
+      sql += ' AND u.employment_type = ?';
+      params.push(req.query.employment_type);
+    }
+    
+    sql += ' ORDER BY a.work_date ASC';
+
+    const attendances = await db.all(sql, params);
 
     const userStats = {};
 

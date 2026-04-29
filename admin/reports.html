@@ -56,30 +56,44 @@
 
       <!-- Monthly Report -->
       <div id="monthly-panel" style="display:none;">
-        <div class="filter-bar">
-          <select id="monthly-month" onchange="loadMonthly()">
-            <option value="1">Ocak</option><option value="2">Şubat</option><option value="3">Mart</option><option value="4">Nisan</option>
-            <option value="5">Mayıs</option><option value="6">Haziran</option><option value="7">Temmuz</option><option value="8">Ağustos</option>
-            <option value="9">Eylül</option><option value="10">Ekim</option><option value="11">Kasım</option><option value="12">Aralık</option>
-          </select>
-          <input type="number" id="monthly-year" onchange="loadMonthly()" min="2020" max="2030" style="width:100px;">
+        <div class="card" style="margin-bottom: 20px; background: #f8fafc; border: 1px solid var(--border-color);">
+          <div class="card-body" style="padding: 15px;">
+            <h4 style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Gelişmiş Filtreler</h4>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+              <div class="form-group" style="margin-bottom: 0;"><label style="font-size:12px;margin-bottom:4px;">Başlangıç</label><input type="date" id="monthly-start" onchange="loadMonthly()"></div>
+              <div class="form-group" style="margin-bottom: 0;"><label style="font-size:12px;margin-bottom:4px;">Bitiş</label><input type="date" id="monthly-end" onchange="loadMonthly()"></div>
+              <div class="form-group" style="margin-bottom: 0;"><label style="font-size:12px;margin-bottom:4px;">Lokasyon</label>
+                <select id="monthly-loc" onchange="loadMonthly()"><option value="">Tümü</option></select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;"><label style="font-size:12px;margin-bottom:4px;">Personel</label>
+                <select id="monthly-user" onchange="loadMonthly()"><option value="">Tümü</option></select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;"><label style="font-size:12px;margin-bottom:4px;">İstihdam Türü</label>
+                <select id="monthly-emp" onchange="loadMonthly()">
+                  <option value="">Tümü</option><option value="kadrolu">Kadrolu</option><option value="parttime">Part-Time</option>
+                </select>
+              </div>
+              <button class="btn btn-secondary" onclick="resetMonthlyFilters()">Sıfırla</button>
+            </div>
+          </div>
         </div>
         <div class="card">
           <div class="card-header"><h3>Aylık Özet</h3></div>
           <div class="card-body" style="padding:0;">
-            <table>
+            <table id="monthly-table">
               <thead><tr>
-                <th>Personel</th>
-                <th>Toplam Gün</th>
-                <th>Toplam Saat</th>
-                <th>Fazla Mesai</th>
-                <th>Maaş/Saatlik Ücret (₺)</th>
-                <th>Yol (₺)</th>
-                <th>Yemek (₺)</th>
-                <th>Mesai Ücreti (₺)</th>
-                <th>Net Hak Ediş (₺)</th>
+                <th onclick="sortTable(0)" style="cursor:pointer;" title="Sıralamak için tıklayın">Personel ↕</th>
+                <th onclick="sortTable(1)" style="cursor:pointer;" title="Sıralamak için tıklayın">Toplam Gün ↕</th>
+                <th onclick="sortTable(2)" style="cursor:pointer;" title="Sıralamak için tıklayın">Toplam Saat ↕</th>
+                <th onclick="sortTable(3)" style="cursor:pointer;" title="Sıralamak için tıklayın">Fazla Mesai ↕</th>
+                <th onclick="sortTable(4)" style="cursor:pointer;" title="Sıralamak için tıklayın">Maaş/Saatlik Ücret (₺) ↕</th>
+                <th onclick="sortTable(5)" style="cursor:pointer;" title="Sıralamak için tıklayın">Yol (₺) ↕</th>
+                <th onclick="sortTable(6)" style="cursor:pointer;" title="Sıralamak için tıklayın">Yemek (₺) ↕</th>
+                <th onclick="sortTable(7)" style="cursor:pointer;" title="Sıralamak için tıklayın">Mesai Ücreti (₺) ↕</th>
+                <th onclick="sortTable(8)" style="cursor:pointer;" title="Sıralamak için tıklayın">Net Hak Ediş (₺) ↕</th>
               </tr></thead>
               <tbody id="monthly-tbody"><tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:40px;">Yükleniyor...</td></tr></tbody>
+              <tfoot id="monthly-tfoot" style="background-color: #f1f5f9; font-weight: bold; border-top: 2px solid #cbd5e1;"></tfoot>
             </table>
           </div>
         </div>
@@ -87,14 +101,29 @@
 
       <!-- Detail Panel -->
       <div id="detail-panel" style="display:none;">
-        <div class="filter-bar">
-          <input type="date" id="detail-date" onchange="loadDetail()">
-          <select id="detail-status" onchange="loadDetail()">
-            <option value="">Tüm Durumlar</option>
-            <option value="checked_in">Mesaide</option>
-            <option value="checked_out">Çıkış</option>
-            <option value="irregular">Düzensiz</option>
-          </select>
+        <div class="card" style="margin-bottom: 20px; background: #f8fafc; border: 1px solid var(--border-color);">
+          <div class="card-body" style="padding: 15px;">
+            <h4 style="margin-bottom: 10px; font-size: 14px; color: var(--text-secondary);">Gelişmiş Filtreler</h4>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; align-items: flex-end;">
+              <div class="form-group" style="margin-bottom: 0;"><label style="font-size:12px;margin-bottom:4px;">Başlangıç</label><input type="date" id="detail-start" onchange="loadDetail()"></div>
+              <div class="form-group" style="margin-bottom: 0;"><label style="font-size:12px;margin-bottom:4px;">Bitiş</label><input type="date" id="detail-end" onchange="loadDetail()"></div>
+              <div class="form-group" style="margin-bottom: 0;"><label style="font-size:12px;margin-bottom:4px;">Lokasyon</label>
+                <select id="detail-loc" onchange="loadDetail()"><option value="">Tümü</option></select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;"><label style="font-size:12px;margin-bottom:4px;">Personel</label>
+                <select id="detail-user" onchange="loadDetail()"><option value="">Tümü</option></select>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;"><label style="font-size:12px;margin-bottom:4px;">Durum</label>
+                <select id="detail-status" onchange="loadDetail()">
+                  <option value="">Tümü</option>
+                  <option value="checked_in">Mesaide</option>
+                  <option value="checked_out">Çıkış Yaptı</option>
+                  <option value="irregular">Düzensiz</option>
+                </select>
+              </div>
+              <button class="btn btn-secondary" onclick="resetDetailFilters()">Sıfırla</button>
+            </div>
+          </div>
         </div>
         <div class="card">
           <div class="card-body" style="padding:0;">
@@ -134,11 +163,41 @@
     const TOKEN = localStorage.getItem('pdks_admin_token');
     if (!TOKEN) window.location.href = 'login.html';
 
-    // Set default dates
-    document.getElementById('daily-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('detail-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('monthly-month').value = new Date().getMonth() + 1;
-    document.getElementById('monthly-year').value = new Date().getFullYear();
+    // Varsayılan tarihler
+    const now = new Date();
+    document.getElementById('daily-date').value = now.toISOString().split('T')[0];
+    
+    // Aylık rapor ve detayli kayitlar için ayın ilk ve son gününü bul
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split('T')[0];
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).toISOString().split('T')[0];
+    document.getElementById('monthly-start').value = firstDay;
+    document.getElementById('monthly-end').value = lastDay;
+    document.getElementById('detail-start').value = firstDay;
+    document.getElementById('detail-end').value = lastDay;
+
+    async function loadFilterData() {
+      const locRes = await fetch('/api/admin/locations', { headers: { 'Authorization':'Bearer '+TOKEN } });
+      const locData = await locRes.json();
+      if(locData.success) {
+        const mLoc = document.getElementById('monthly-loc');
+        const dLoc = document.getElementById('detail-loc');
+        locData.locations.forEach(l => {
+          mLoc.innerHTML += '<option value="'+l.id+'">'+l.name+'</option>';
+          dLoc.innerHTML += '<option value="'+l.id+'">'+l.name+'</option>';
+        });
+      }
+
+      const usrRes = await fetch('/api/admin/users?limit=1000', { headers: { 'Authorization':'Bearer '+TOKEN } });
+      const usrData = await usrRes.json();
+      if(usrData.success) {
+        const mUsr = document.getElementById('monthly-user');
+        const dUsr = document.getElementById('detail-user');
+        usrData.users.forEach(u => {
+          mUsr.innerHTML += '<option value="'+u.id+'">'+u.full_name+'</option>';
+          dUsr.innerHTML += '<option value="'+u.id+'">'+u.full_name+'</option>';
+        });
+      }
+    }
 
     async function apiFetch(url) {
       const res = await fetch(url, { headers: { 'Authorization':'Bearer '+TOKEN } });
@@ -199,14 +258,52 @@
       }
     }, 3000);
 
+    function resetMonthlyFilters() {
+      document.getElementById('monthly-start').value = firstDay;
+      document.getElementById('monthly-end').value = lastDay;
+      document.getElementById('monthly-loc').value = '';
+      document.getElementById('monthly-user').value = '';
+      document.getElementById('monthly-emp').value = '';
+      loadMonthly();
+    }
+
     async function loadMonthly() {
-      const month = document.getElementById('monthly-month').value;
-      const year = document.getElementById('monthly-year').value;
-      const data = await apiFetch('/api/admin/reports/monthly?month='+month+'&year='+year);
+      const sDate = document.getElementById('monthly-start').value;
+      const eDate = document.getElementById('monthly-end').value;
+      const locId = document.getElementById('monthly-loc').value;
+      const usrId = document.getElementById('monthly-user').value;
+      const empType = document.getElementById('monthly-emp').value;
+      
+      let url = '/api/admin/reports/monthly?';
+      if (sDate) url += 'start_date='+sDate+'&';
+      if (eDate) url += 'end_date='+eDate+'&';
+      if (locId) url += 'location_id='+locId+'&';
+      if (usrId) url += 'user_id='+usrId+'&';
+      if (empType) url += 'employment_type='+empType+'&';
+
+      const data = await apiFetch(url);
       if (!data || !data.success) return;
       const tbody = document.getElementById('monthly-tbody');
-      if (!data.records.length) { tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Bu ay kayıt yok</td></tr>'; return; }
+      const tfoot = document.getElementById('monthly-tfoot');
+      
+      if (!data.records.length) { 
+        tbody.innerHTML='<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);">Filtrelere uygun kayıt bulunamadı</td></tr>'; 
+        tfoot.innerHTML='';
+        return; 
+      }
+      
+      let sumDays=0, sumHours=0, sumOvertime=0, sumBase=0, sumTravel=0, sumFood=0, sumOvtPay=0, sumTotal=0;
+      
       tbody.innerHTML = data.records.map(r => {
+        sumDays += r.days_present;
+        sumHours += r.total_hours;
+        sumOvertime += r.overtime_hours;
+        sumBase += r.base_pay;
+        sumTravel += r.travel_pay;
+        sumFood += r.food_pay;
+        sumOvtPay += r.overtime_pay;
+        sumTotal += r.total_pay;
+
         return '<tr>' +
           '<td>'+r.full_name+'</td>' +
           '<td>'+r.days_present+' gün</td>' +
@@ -219,14 +316,44 @@
           '<td style="font-weight:bold; color:var(--success);">'+r.total_pay+' ₺</td>' +
         '</tr>';
       }).join('');
+
+      // Render Footer Summary
+      tfoot.innerHTML = '<tr>' +
+        '<td style="color:var(--text-main);">GENEL TOPLAM</td>' +
+        '<td>'+sumDays+' gün</td>' +
+        '<td>'+sumHours.toFixed(2)+' saat</td>' +
+        '<td>'+sumOvertime.toFixed(2)+' saat</td>' +
+        '<td>'+sumBase.toFixed(2)+' ₺</td>' +
+        '<td>'+sumTravel.toFixed(2)+' ₺</td>' +
+        '<td>'+sumFood.toFixed(2)+' ₺</td>' +
+        '<td>'+sumOvtPay.toFixed(2)+' ₺</td>' +
+        '<td style="font-size:15px; color:#16a34a;">'+sumTotal.toFixed(2)+' ₺</td>' +
+        '</tr>';
+    }
+
+    function resetDetailFilters() {
+      document.getElementById('detail-start').value = firstDay;
+      document.getElementById('detail-end').value = lastDay;
+      document.getElementById('detail-loc').value = '';
+      document.getElementById('detail-user').value = '';
+      document.getElementById('detail-status').value = '';
+      loadDetail();
     }
 
     async function loadDetail() {
-      const date = document.getElementById('detail-date').value;
+      const sDate = document.getElementById('detail-start').value;
+      const eDate = document.getElementById('detail-end').value;
+      const locId = document.getElementById('detail-loc').value;
+      const usrId = document.getElementById('detail-user').value;
       const status = document.getElementById('detail-status').value;
-      let url = '/api/admin/attendance?limit=100';
-      if (date) url += '&date='+date;
-      if (status) url += '&status='+status;
+      
+      let url = '/api/admin/attendance?limit=300&';
+      if (sDate) url += 'start_date='+sDate+'&';
+      if (eDate) url += 'end_date='+eDate+'&';
+      if (locId) url += 'location_id='+locId+'&';
+      if (usrId) url += 'user_id='+usrId+'&';
+      if (status) url += 'status='+status+'&';
+
       const data = await apiFetch(url);
       if (!data || !data.success) return;
       const tbody = document.getElementById('detail-tbody');
@@ -285,18 +412,29 @@
       }
       
       rows.forEach(r => {
-        const cells = r.querySelectorAll('td');
+        const cells = r.querySelectorAll('td, th');
         if (cells.length > 1 && !cells[0].textContent.includes('bulunamadı') && !cells[0].textContent.includes('seçin') && !cells[0].textContent.includes('kayıt yok')) {
           const rowData = [];
           cells.forEach((c, idx) => {
             if ((!isMonthly && idx < 5) || isMonthly) {
-              // Rakamlardan ' ₺' veya ' saat' veya ' gün' gibi metinleri temizlemeden de ekleyebiliriz veya temizleyebiliriz. SheetJS düz string olarak alır.
-              rowData.push(c.textContent.replace(' ₺', '').replace(' gün', '').replace(' saat', '').trim());
+              rowData.push(c.textContent.replace(' ₺', '').replace(' gün', '').replace(' saat', '').replace(' ↕', '').trim());
             }
           });
           data.push(rowData);
         }
       });
+
+      // TFOOT'daki toplamlari da ekle
+      if (isMonthly) {
+        const fRows = document.querySelectorAll('#monthly-tfoot tr');
+        fRows.forEach(r => {
+          const rowData = [];
+          r.querySelectorAll('td').forEach(c => {
+            rowData.push(c.textContent.replace(' ₺', '').replace(' gün', '').replace(' saat', '').trim());
+          });
+          if(rowData.length > 0) data.push(rowData);
+        });
+      }
       
       const ws = XLSX.utils.aoa_to_sheet(data);
       const wb = XLSX.utils.book_new();
@@ -306,7 +444,34 @@
 
     function logout() { localStorage.removeItem('pdks_admin_token'); localStorage.removeItem('pdks_admin_user'); window.location.href='login.html'; }
 
+    // Table Sorter
+    let sortOrders = {};
+    function sortTable(colIdx) {
+      const table = document.getElementById("monthly-table");
+      const tbody = document.getElementById("monthly-tbody");
+      const rows = Array.from(tbody.querySelectorAll("tr"));
+      if(rows.length === 0 || rows[0].cells.length === 1) return;
+
+      const order = sortOrders[colIdx] === 'asc' ? 'desc' : 'asc';
+      sortOrders[colIdx] = order;
+
+      rows.sort((a, b) => {
+        let v1 = a.cells[colIdx].textContent.replace(' ₺', '').replace(' gün', '').replace(' saat', '').trim();
+        let v2 = b.cells[colIdx].textContent.replace(' ₺', '').replace(' gün', '').replace(' saat', '').trim();
+        let n1 = parseFloat(v1); let n2 = parseFloat(v2);
+        
+        if(!isNaN(n1) && !isNaN(n2)) {
+          return order === 'asc' ? n1 - n2 : n2 - n1;
+        }
+        return order === 'asc' ? v1.localeCompare(v2) : v2.localeCompare(v1);
+      });
+
+      tbody.innerHTML = '';
+      rows.forEach(r => tbody.appendChild(r));
+    }
+
     // Auto load
+    loadFilterData();
     loadDaily();
   </script>
 </body>
