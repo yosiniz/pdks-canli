@@ -49,6 +49,7 @@
 
 /* ── Reset ── */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+html { color-scheme: dark; }
 body {
   font-family: var(--font);
   background: var(--bg-body);
@@ -60,6 +61,15 @@ body {
 }
 a { color: var(--accent); text-decoration: none; transition: var(--t); }
 a:hover { color: var(--accent-hover); }
+
+/* Force dark on ALL native form controls */
+input, select, textarea, option {
+  color-scheme: dark;
+  background-color: var(--bg-input);
+  color: var(--text-primary);
+}
+option { background: var(--bg-card) !important; color: var(--text-primary) !important; }
+select option:checked { background: var(--accent) !important; color: #fff !important; }
 
 /* ── Custom Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -372,9 +382,12 @@ tfoot td {
   font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
-  background: var(--bg-chip);
-  border-top: 1px solid var(--border);
+  background: #21262d;
+  border-top: 2px solid var(--border);
 }
+
+tfoot tr:first-child td:first-child { color: var(--accent); }
+tfoot tr:first-child td:last-child { color: var(--success); font-size: 14px; }
 
 /* ════════════════════════════════════
    BADGES
