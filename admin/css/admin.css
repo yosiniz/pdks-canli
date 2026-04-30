@@ -49,27 +49,49 @@
 
 /* ── Reset ── */
 *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
-html { color-scheme: dark; }
+html {
+  color-scheme: dark !important;
+  background: #0d1117 !important;
+}
 body {
   font-family: var(--font);
-  background: var(--bg-body);
-  color: var(--text-primary);
+  background: #0d1117 !important;
+  color: #e6edf3 !important;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
 }
-a { color: var(--accent); text-decoration: none; transition: var(--t); }
-a:hover { color: var(--accent-hover); }
+a { color: #f97316; text-decoration: none; transition: var(--t); }
+a:hover { color: #ea580c; }
 
-/* Force dark on ALL native form controls */
-input, select, textarea, option {
+/* ═══ FORCE DARK ON ALL NATIVE FORM CONTROLS ═══ */
+input, select, textarea {
   color-scheme: dark;
-  background-color: var(--bg-input);
-  color: var(--text-primary);
+  background-color: #0d1117 !important;
+  color: #e6edf3 !important;
+  border-color: #30363d !important;
 }
-option { background: var(--bg-card) !important; color: var(--text-primary) !important; }
-select option:checked { background: var(--accent) !important; color: #fff !important; }
+input:focus, select:focus, textarea:focus {
+  background-color: #161b22 !important;
+  border-color: #f97316 !important;
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(249,115,22,0.18) !important;
+}
+input::placeholder { color: #484f58 !important; }
+option {
+  background: #161b22 !important;
+  color: #e6edf3 !important;
+}
+select option:checked { background: #f97316 !important; color: #fff !important; }
+
+/* date picker inner elements */
+::-webkit-calendar-picker-indicator {
+  filter: invert(1) !important;
+  opacity: 0.6;
+}
+::-webkit-datetime-edit { color: #e6edf3 !important; }
+::-webkit-datetime-edit-fields-wrapper { background: transparent !important; }
 
 /* ── Custom Scrollbar ── */
 ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -332,12 +354,13 @@ select option:checked { background: var(--accent) !important; color: #fff !impor
    CARD & TABLE
    ════════════════════════════════════ */
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: #161b22 !important;
+  border: 1px solid #30363d !important;
   border-radius: var(--radius);
   overflow: hidden;
   margin-bottom: 20px;
 }
+.card-body { padding: 20px; background: #161b22 !important; }
 .card-header {
   display: flex;
   justify-content: space-between;
@@ -354,28 +377,30 @@ thead th {
   text-align: left;
   font-size: 11px;
   font-weight: 700;
-  color: var(--text-muted);
+  color: #8b949e !important;
   text-transform: uppercase;
   letter-spacing: 0.7px;
   border-bottom: 1px solid var(--border);
-  background: var(--bg-body);
+  background: #0d1117 !important;
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
 }
-thead th:hover { color: var(--text-secondary); }
+thead th:hover { color: #e6edf3 !important; }
 tbody td {
   padding: 13px 16px;
   font-size: 13.5px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid #30363d !important;
   transition: var(--t);
-  color: var(--text-primary);
+  color: #e6edf3 !important;
+  background: #161b22 !important;
   vertical-align: middle;
 }
 tbody tr:hover td {
-  background: var(--bg-hover);
+  background: #1f2937 !important;
+  color: #fb923c !important;
 }
-tbody tr:last-child td { border-bottom: none; }
+tbody tr:last-child td { border-bottom: none !important; }
 
 tfoot td {
   padding: 13px 16px;
