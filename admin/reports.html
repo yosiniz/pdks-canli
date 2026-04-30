@@ -8,6 +8,33 @@
   <link rel="stylesheet" href="css/admin.css?v=5">
   <!-- Excel disari aktarma icin SheetJS kütüphanesi -->
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <!-- DARK THEME CRITICAL OVERRIDES — inline to bypass any CDN/browser cache -->
+  <style>
+    html, body { background: #0d1117 !important; color: #e6edf3 !important; color-scheme: dark !important; }
+    .app-layout { background: #0d1117 !important; }
+    .main-content { background: #0d1117 !important; }
+    .card, .card-body { background: #161b22 !important; }
+    .card-header { background: #161b22 !important; border-bottom: 1px solid #30363d !important; }
+    .card-header h3, .card-body h4 { color: #e6edf3 !important; }
+    thead th { background: #0d1117 !important; color: #8b949e !important; border-bottom: 1px solid #30363d !important; }
+    tbody td { background: #161b22 !important; color: #e6edf3 !important; border-bottom: 1px solid #30363d !important; }
+    tbody tr:hover td { background: #1f2937 !important; }
+    tfoot td { background: #21262d !important; color: #e6edf3 !important; border-top: 2px solid #30363d !important; }
+    input, select, textarea { background: #0d1117 !important; color: #e6edf3 !important; border: 1px solid #30363d !important; color-scheme: dark !important; }
+    input:focus, select:focus { background: #161b22 !important; border-color: #f97316 !important; box-shadow: 0 0 0 3px rgba(249,115,22,0.18) !important; }
+    option { background: #161b22 !important; color: #e6edf3 !important; }
+    .tab-bar { background: #161b22 !important; border: 1px solid #30363d !important; }
+    .tab-btn { background: transparent !important; color: #8b949e !important; border: 1px solid transparent !important; }
+    .tab-btn.active { background: #f97316 !important; color: #fff !important; border-color: #f97316 !important; }
+    .tab-btn:hover:not(.active) { background: #1f2937 !important; color: #e6edf3 !important; }
+    .filter-bar input, .filter-bar select { background: #161b22 !important; color: #e6edf3 !important; border: 1px solid #30363d !important; }
+    .stat-card { background: #161b22 !important; border: 1px solid #30363d !important; }
+    label { color: #8b949e !important; }
+    ::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.6) !important; }
+    h4[style*="Gelişmiş"] { color: #8b949e !important; }
+    /* Filter section heading */
+    .card-body h4 { color: #8b949e !important; font-size: 11px !important; text-transform: uppercase !important; letter-spacing: 0.5px !important; font-weight: 600 !important; }
+  </style>
 </head>
 <body>
   <div class="app-layout">

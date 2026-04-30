@@ -6,7 +6,24 @@
   <title>PDKS - Personel Yönetimi</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/admin.css?v=5">
-</head>
+  <!-- DARK THEME CRITICAL OVERRIDES -->
+  <style>
+    html, body { background: #0d1117 !important; color: #e6edf3 !important; color-scheme: dark !important; }
+    .app-layout, .main-content { background: #0d1117 !important; }
+    .card, .card-body { background: #161b22 !important; }
+    .card-header { background: #161b22 !important; border-bottom: 1px solid #30363d !important; }
+    .card-header h3 { color: #e6edf3 !important; }
+    thead th { background: #0d1117 !important; color: #8b949e !important; border-bottom: 1px solid #30363d !important; }
+    tbody td { background: #161b22 !important; color: #e6edf3 !important; border-bottom: 1px solid #30363d !important; }
+    tbody tr:hover td { background: #1f2937 !important; }
+    input, select, textarea { background: #0d1117 !important; color: #e6edf3 !important; border: 1px solid #30363d !important; color-scheme: dark !important; }
+    input:focus, select:focus { background: #161b22 !important; border-color: #f97316 !important; }
+    option { background: #161b22 !important; color: #e6edf3 !important; }
+    .stat-card { background: #161b22 !important; border: 1px solid #30363d !important; }
+    .filter-bar input, .filter-bar select { background: #161b22 !important; color: #e6edf3 !important; }
+    label { color: #8b949e !important; }
+    ::-webkit-calendar-picker-indicator { filter: invert(1) opacity(0.6) !important; }
+  </style></head>
 <body>
   <div class="app-layout">
     <aside class="sidebar">
