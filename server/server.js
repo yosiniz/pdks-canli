@@ -11,10 +11,15 @@ app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Static files
+// Static files — no-cache so browsers always get latest HTML/CSS
+const noCacheOpts = { etag: false, lastModified: false, setHeaders: (res) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+}};
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/mobile', express.static(path.join(__dirname, '..', 'mobile')));
-app.use('/admin', express.static(path.join(__dirname, '..', 'admin')));
+app.use('/mobile', express.static(path.join(__dirname, '..', 'mobile'), noCacheOpts));
+app.use('/admin',  express.static(path.join(__dirname, '..', 'admin'),  noCacheOpts));
 
 // API Routes
 app.use('/api/auth', require('./routes/auth'));

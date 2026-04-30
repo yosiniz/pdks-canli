@@ -3,12 +3,47 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
   <title>PDKS - Raporlar</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/admin.css?v=5">
-  <!-- Excel disari aktarma icin SheetJS kütüphanesi -->
+  <link rel="stylesheet" href="css/admin.css?v=9">
   <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <!-- DARK THEME CRITICAL OVERRIDES — inline to bypass any CDN/browser cache -->
+  <!-- INSTANT DARK MODE — runs synchronously before any paint -->
+  <script>
+    (function(){
+      var s = document.createElement('style');
+      s.textContent = [
+        'html,body{background:#0d1117!important;color:#e6edf3!important;color-scheme:dark!important}',
+        '.app-layout,.main-content,.sidebar{background:#0d1117!important}',
+        '.card,.card-body,.card-header{background:#161b22!important}',
+        '.card-header{border-bottom:1px solid #30363d!important}',
+        'thead th{background:#0d1117!important;color:#8b949e!important;border-bottom:1px solid #30363d!important}',
+        'tbody td{background:#161b22!important;color:#e6edf3!important;border-bottom:1px solid #30363d!important}',
+        'tbody tr:hover td{background:#1f2937!important;color:#fb923c!important}',
+        'tfoot td{background:#21262d!important;color:#e6edf3!important;border-top:2px solid #30363d!important}',
+        'input,select,textarea{background:#0d1117!important;color:#e6edf3!important;border:1px solid #30363d!important;color-scheme:dark!important}',
+        'input:focus,select:focus{background:#161b22!important;border-color:#f97316!important;box-shadow:0 0 0 3px rgba(249,115,22,.2)!important}',
+        'option{background:#161b22!important;color:#e6edf3!important}',
+        'label{color:#8b949e!important}',
+        '.tab-bar{background:#161b22!important;border:1px solid #30363d!important}',
+        '.tab-btn{background:transparent!important;color:#8b949e!important;border-color:transparent!important}',
+        '.tab-btn.active{background:#f97316!important;color:#fff!important;border-color:#f97316!important}',
+        '.stat-card{background:#161b22!important;border:1px solid #30363d!important}',
+        '.nav-item{color:#8b949e!important}',
+        '.nav-item.active{background:rgba(249,115,22,.12)!important;color:#f97316!important}',
+        '.sidebar-footer{background:#0d1117!important;border-top:1px solid #30363d!important}',
+        '.btn-secondary{background:#21262d!important;border-color:#30363d!important;color:#e6edf3!important}',
+        '.page-header h1{color:#e6edf3!important}',
+        '.page-header p{color:#8b949e!important}',
+        '.card-header h3{color:#e6edf3!important}',
+        'h4{color:#8b949e!important}',
+        '::-webkit-calendar-picker-indicator{filter:invert(1)!important;opacity:.6!important}'
+      ].join('');
+      document.head.appendChild(s);
+    })();
+  </script>
   <style>
     html, body { background: #0d1117 !important; color: #e6edf3 !important; color-scheme: dark !important; }
     .app-layout { background: #0d1117 !important; }
