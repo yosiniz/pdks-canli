@@ -137,19 +137,38 @@ module.exports = {
   initializeDatabase,
   getDb: () => ({
     get: async (sql, params = []) => {
-      let idx = 1;
-      const res = await query(sql.replace(/\?/g, () => `$${idx++}`), params);
-      return res.rows[0];
+      try {
+        let idx = 1;
+        const formattedSql = sql.replace(/\?/g, () => `$${idx++}`);
+        const res = await query(formattedSql, params);
+        return res.rows[0];
+      } catch (err) {
+        console.error('DB Get Hatası:', err.message, '| SQL:', sql);
+        throw err;
+      }
     },
     all: async (sql, params = []) => {
-      let idx = 1;
-      const res = await query(sql.replace(/\?/g, () => `$${idx++}`), params);
-      return res.rows;
+      try {
+        let idx = 1;
+        const formattedSql = sql.replace(/\?/g, () => `$${idx++}`);
+        const res = await query(formattedSql, params);
+        return res.rows;
+      } catch (err) {
+        console.error('DB All Hatası:', err.message, '| SQL:', sql);
+        throw err;
+      }
     },
     run: async (sql, params = []) => {
-      let idx = 1;
-      const res = await query(sql.replace(/\?/g, () => `$${idx++}`), params);
-      return { lastInsertRowid: res.rows[0]?.id || null };
+      try {
+        let idx = 1;
+        const formattedSql = sql.replace(/\?/g, () => `$${idx++}`);
+        const res = await query(formattedSql, params);
+        // PostgreSQL'de RETURNING id varsa rows[0].id döner
+        return { lastInsertRowid: res.rows[0]?.id || null, rowsAffected: res.rowCount };
+      } catch (err) {
+        console.error('DB Run Hatası:', err.message, '| SQL:', sql);
+        throw err;
+      }
     }
   })
 };
