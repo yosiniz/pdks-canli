@@ -96,23 +96,37 @@ const initializeDatabase = async () => {
       console.log('Varsayilan admin olusturuldu (admin / admin123)');
     }
 
-    // Migration: Add missing columns to users if they don't exist
-    const userColumns = ['employment_type', 'monthly_salary', 'monthly_travel', 'monthly_food', 'working_days_month', 'working_hours_day'];
-    for (const col of userColumns) {
+    // Migration: Add missing columns to users
+    const userCols = [
+      { name: 'employment_type', type: 'TEXT', def: "'kadrolu'" },
+      { name: 'monthly_salary', type: 'NUMERIC', def: '0' },
+      { name: 'monthly_travel', type: 'NUMERIC', def: '0' },
+      { name: 'monthly_food', type: 'NUMERIC', def: '0' },
+      { name: 'working_days_month', type: 'INTEGER', def: '26' },
+      { name: 'working_hours_day', type: 'INTEGER', def: '8' }
+    ];
+    for (const col of userCols) {
       try {
-        await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${col} ${col.includes('days') || col.includes('hours') ? 'INTEGER' : 'NUMERIC'} DEFAULT ${col === 'employment_type' ? "'kadrolu'" : col.includes('days') ? '26' : col.includes('hours') ? '8' : '0'}`);
-      } catch (e) { /* ignore if already exists */ }
+        await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${col.name} ${col.type} DEFAULT ${col.def}`);
+        console.log(`User column check: ${col.name}`);
+      } catch (e) { console.error(`Error adding ${col.name} to users:`, e.message); }
     }
 
-    // Migration: Add missing columns to locations if they don't exist
-    const locColumns = ['hourly_rate', 'travel_allowance', 'food_allowance', 'overtime_multiplier'];
-    for (const col of locColumns) {
+    // Migration: Add missing columns to locations
+    const locCols = [
+      { name: 'hourly_rate', type: 'NUMERIC', def: '0' },
+      { name: 'travel_allowance', type: 'NUMERIC', def: '0' },
+      { name: 'food_allowance', type: 'NUMERIC', def: '0' },
+      { name: 'overtime_multiplier', type: 'NUMERIC', def: '1' }
+    ];
+    for (const col of locCols) {
       try {
-        await query(`ALTER TABLE locations ADD COLUMN IF NOT EXISTS ${col} NUMERIC DEFAULT ${col === 'overtime_multiplier' ? '1' : '0'}`);
-      } catch (e) { /* ignore if already exists */ }
+        await query(`ALTER TABLE locations ADD COLUMN IF NOT EXISTS ${col.name} ${col.type} DEFAULT ${col.def}`);
+        console.log(`Location column check: ${col.name}`);
+      } catch (e) { console.error(`Error adding ${col.name} to locations:`, e.message); }
     }
 
-    console.log('PostgreSQL Veritabanı Hazır ve Güncel.');
+    console.log('PostgreSQL Veritabanı Yapılandırması Tamamlandı.');
   } catch (err) {
     console.error('Veritabanı başlatma hatası:', err);
   }

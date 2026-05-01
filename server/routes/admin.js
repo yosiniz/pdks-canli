@@ -92,7 +92,7 @@ router.delete('/users/:id', async (req, res) => {
 router.get('/locations', async (req, res) => {
   try {
     const db = getDb();
-    const locations = await db.all('SELECT * FROM locations ORDER BY name ASC', []);
+    const locations = await db.all('SELECT id, name, address, latitude, longitude, radius_meters, is_active, hourly_rate, travel_allowance, food_allowance, overtime_multiplier FROM locations ORDER BY name ASC', []);
     res.json({ success: true, locations });
   } catch (err) {
     console.error('Lokasyon listeleme hatası:', err);
