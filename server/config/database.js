@@ -96,9 +96,25 @@ const initializeDatabase = async () => {
       console.log('Varsayilan admin olusturuldu (admin / admin123)');
     }
 
-    console.log('PostgreSQL Veritabani Hazir.');
+    // Migration: Add missing columns to users if they don't exist
+    const userColumns = ['employment_type', 'monthly_salary', 'monthly_travel', 'monthly_food', 'working_days_month', 'working_hours_day'];
+    for (const col of userColumns) {
+      try {
+        await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS ${col} ${col.includes('days') || col.includes('hours') ? 'INTEGER' : 'NUMERIC'} DEFAULT ${col === 'employment_type' ? "'kadrolu'" : col.includes('days') ? '26' : col.includes('hours') ? '8' : '0'}`);
+      } catch (e) { /* ignore if already exists */ }
+    }
+
+    // Migration: Add missing columns to locations if they don't exist
+    const locColumns = ['hourly_rate', 'travel_allowance', 'food_allowance', 'overtime_multiplier'];
+    for (const col of locColumns) {
+      try {
+        await query(`ALTER TABLE locations ADD COLUMN IF NOT EXISTS ${col} NUMERIC DEFAULT ${col === 'overtime_multiplier' ? '1' : '0'}`);
+      } catch (e) { /* ignore if already exists */ }
+    }
+
+    console.log('PostgreSQL Veritabanı Hazır ve Güncel.');
   } catch (err) {
-    console.error('Veritabani baslatma hatasi:', err);
+    console.error('Veritabanı başlatma hatası:', err);
   }
 };
 

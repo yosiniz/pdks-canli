@@ -90,8 +90,14 @@ router.delete('/users/:id', async (req, res) => {
 
 // LOCATIONS
 router.get('/locations', async (req, res) => {
-  try { res.json({ success: true, locations: await getDb().all('SELECT * FROM locations ORDER BY name ASC', []) }); }
-  catch (err) { res.status(500).json({ error: 'Sunucu hatasi' }); }
+  try {
+    const db = getDb();
+    const locations = await db.all('SELECT * FROM locations ORDER BY name ASC', []);
+    res.json({ success: true, locations });
+  } catch (err) {
+    console.error('Lokasyon listeleme hatası:', err);
+    res.status(500).json({ error: 'Veritabanı hatası: ' + err.message });
+  }
 });
 
 router.post('/locations', async (req, res) => {

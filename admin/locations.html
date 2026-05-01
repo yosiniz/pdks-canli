@@ -115,36 +115,50 @@
     if (!TOKEN) window.location.href = 'login.html';
 
     async function apiFetch(url, opts) {
-      const headers = { 'Authorization':'Bearer '+TOKEN };
-      if (opts && opts.body && typeof opts.body === 'string') headers['Content-Type'] = 'application/json';
-      const res = await fetch(url, { headers, ...opts });
-      if (res.status===401) { logout(); return null; }
-      return await res.json();
+      try {
+        const headers = { 'Authorization':'Bearer '+TOKEN };
+        if (opts && opts.body && typeof opts.body === 'string') headers['Content-Type'] = 'application/json';
+        const res = await fetch(url, { headers, ...opts });
+        if (res.status===401) { logout(); return null; }
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({ error: 'Sunucu hatası: ' + res.status }));
+          throw new Error(errData.error || 'İstek başarısız oldu');
+        }
+        return await res.json();
+      } catch (err) {
+        console.error('API Fetch Hatası:', err);
+        throw err;
+      }
     }
 
     async function loadLocations() {
-      const data = await apiFetch('/api/admin/locations');
-      if (!data) return;
       const grid = document.getElementById('locations-grid');
-      if (!data.locations || data.locations.length === 0) {
-        grid.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:60px;grid-column:1/-1;"><p>Henüz lokasyon eklenmemiş</p><p style="margin-top:8px;">Yukarıdaki "Yeni Lokasyon" butonuna tıklayın</p></div>';
-        return;
+      try {
+        const data = await apiFetch('/api/admin/locations');
+        if (!data) return;
+        
+        if (!data.locations || data.locations.length === 0) {
+          grid.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:60px;grid-column:1/-1;"><p>Henüz lokasyon eklenmemiş</p><p style="margin-top:8px;">Yukarıdaki "Yeni Lokasyon" butonuna tıklayın</p></div>';
+          return;
+        }
+        grid.innerHTML = data.locations.map(l => {
+          const statusBadge = l.is_active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-danger">Pasif</span>';
+          return '<div class="stat-card" style="flex-direction:column;align-items:flex-start;gap:12px;cursor:default;">' +
+            '<div style="display:flex;justify-content:space-between;width:100%;align-items:center;">' +
+              '<div style="font-size:16px;font-weight:600;">'+l.name+'</div>' + statusBadge +
+            '</div>' +
+            '<div style="font-size:12px;color:var(--text-secondary);">📍 '+(l.address||'Adres belirtilmemiş')+'</div>' +
+            '<div style="font-size:12px;color:var(--text-muted);">Koordinat: '+l.latitude.toFixed(4)+', '+l.longitude.toFixed(4)+' • Yarıçap: '+l.radius_meters+'m</div>' +
+            '<div style="display:flex;gap:8px;width:100%;margin-top:4px;">' +
+              '<button class="btn btn-sm btn-primary" onclick="showQR('+l.id+')">QR Göster</button>' +
+              '<button class="btn btn-sm btn-secondary" onclick="regenerateQR('+l.id+')">QR Yenile</button>' +
+              '<button class="btn btn-sm btn-secondary" onclick="editLocation('+l.id+')">Düzenle</button>' +
+            '</div>' +
+          '</div>';
+        }).join('');
+      } catch (err) {
+        grid.innerHTML = '<div style="text-align:center;color:#ef4444;padding:60px;grid-column:1/-1;"><p>Veriler yüklenirken hata oluştu</p><p style="margin-top:8px;font-size:12px;opacity:0.8;">' + err.message + '</p></div>';
       }
-      grid.innerHTML = data.locations.map(l => {
-        const statusBadge = l.is_active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-danger">Pasif</span>';
-        return '<div class="stat-card" style="flex-direction:column;align-items:flex-start;gap:12px;cursor:default;">' +
-          '<div style="display:flex;justify-content:space-between;width:100%;align-items:center;">' +
-            '<div style="font-size:16px;font-weight:600;">'+l.name+'</div>' + statusBadge +
-          '</div>' +
-          '<div style="font-size:12px;color:var(--text-secondary);">📍 '+(l.address||'Adres belirtilmemiş')+'</div>' +
-          '<div style="font-size:12px;color:var(--text-muted);">Koordinat: '+l.latitude.toFixed(4)+', '+l.longitude.toFixed(4)+' • Yarıçap: '+l.radius_meters+'m</div>' +
-          '<div style="display:flex;gap:8px;width:100%;margin-top:4px;">' +
-            '<button class="btn btn-sm btn-primary" onclick="showQR('+l.id+')">QR Göster</button>' +
-            '<button class="btn btn-sm btn-secondary" onclick="regenerateQR('+l.id+')">QR Yenile</button>' +
-            '<button class="btn btn-sm btn-secondary" onclick="editLocation('+l.id+')">Düzenle</button>' +
-          '</div>' +
-        '</div>';
-      }).join('');
     }
 
     let map, mapMarker, mapCircle;
