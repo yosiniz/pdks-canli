@@ -99,7 +99,6 @@ router.get('/locations', async (req, res) => {
        COALESCE(food_allowance, 0) AS food_allowance,
        COALESCE(overtime_multiplier, 1) AS overtime_multiplier
        FROM locations ORDER BY name ASC`, []);
-    );
     res.json({ success: true, locations });
   } catch (err) {
     console.error('Lokasyon listeleme hatası:', err);
