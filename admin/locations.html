@@ -309,7 +309,8 @@
       setTimeout(() => {
         initMap();
         setMapPosition(DEFAULT_COORD[0], DEFAULT_COORD[1], 10);
-      }, 100);
+        if (map) map.invalidateSize();
+      }, 350);
     }
 
     async function editLocation(id) {
@@ -334,7 +335,8 @@
       setTimeout(() => {
         initMap();
         setMapPosition(l.latitude, l.longitude, 16);
-      }, 100);
+        if (map) map.invalidateSize();
+      }, 350);
     }
 
     async function saveLocation() {
