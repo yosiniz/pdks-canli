@@ -165,20 +165,49 @@
           grid.innerHTML = '<div style="text-align:center;color:var(--text-muted);padding:60px;grid-column:1/-1;"><p>Henüz lokasyon eklenmemiş</p><p style="margin-top:8px;">Yukarıdaki "Yeni Lokasyon" butonuna tıklayın</p></div>';
           return;
         }
+        grid.className = 'location-grid';
         grid.innerHTML = data.locations.map(l => {
-          const statusBadge = l.is_active ? '<span class="badge badge-success">Aktif</span>' : '<span class="badge badge-danger">Pasif</span>';
-          return '<div class="stat-card" style="flex-direction:column;align-items:flex-start;gap:12px;cursor:default;">' +
-            '<div style="display:flex;justify-content:space-between;width:100%;align-items:center;">' +
-              '<div style="font-size:16px;font-weight:600;">' + l.name + '</div>' + statusBadge +
-            '</div>' +
-            '<div style="font-size:12px;color:var(--text-secondary);">📍 ' + (l.address || 'Adres belirtilmemiş') + '</div>' +
-            '<div style="font-size:12px;color:var(--text-muted);">Koordinat: ' + parseFloat(l.latitude).toFixed(4) + ', ' + parseFloat(l.longitude).toFixed(4) + ' • Yarıçap: ' + l.radius_meters + 'm</div>' +
-            '<div style="display:flex;gap:8px;width:100%;margin-top:4px;">' +
-              '<button class="btn btn-sm btn-primary" onclick="showQR(' + l.id + ')">QR Göster</button>' +
-              '<button class="btn btn-sm btn-secondary" onclick="regenerateQR(' + l.id + ')">QR Yenile</button>' +
-              '<button class="btn btn-sm btn-secondary" onclick="editLocation(' + l.id + ')">Düzenle</button>' +
-            '</div>' +
-          '</div>';
+          const statusBadge = l.is_active 
+            ? '<span class="badge badge-success">● Aktif</span>' 
+            : '<span class="badge badge-danger">○ Pasif</span>';
+            
+          return `
+            <div class="location-card">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <h3>${l.name}</h3>
+                ${statusBadge}
+              </div>
+              
+              <div class="loc-info">
+                <div class="loc-info-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <span>${l.address || 'Adres belirtilmemiş'}</span>
+                </div>
+                <div class="loc-info-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  <span>Menzil: ${l.radius_meters}m</span>
+                </div>
+                <div style="font-size:11px; color:var(--text-muted); margin-top:4px;">
+                  ${parseFloat(l.latitude).toFixed(5)}, ${parseFloat(l.longitude).toFixed(5)}
+                </div>
+              </div>
+              
+              <div class="loc-actions">
+                <button class="btn btn-sm btn-primary" onclick="showQR(${l.id})">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                  QR Göster
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="regenerateQR(${l.id})">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                  Yenile
+                </button>
+                <button class="btn btn-sm btn-secondary" onclick="editLocation(${l.id})">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                  Düzenle
+                </button>
+              </div>
+            </div>
+          `;
         }).join('');
       } catch (err) {
         grid.innerHTML = `
