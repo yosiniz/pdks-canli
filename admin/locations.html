@@ -81,9 +81,9 @@
           <div class="form-group" style="flex: 1;"><label>Part-Time Yemek Ücreti (₺)</label><input type="number" step="any" id="loc-food" value="0"></div>
           <div class="form-group" style="flex: 1;"><label>Kadrolu Mesai Çarpanı</label><input type="number" step="any" id="loc-multiplier" value="1" title="Fazla mesai yapıldığında saatlik ücretin kaç ile çarpılacağını belirler. (Örn: 1.5 veya 2)"></div>
         </div>
-        <div class="form-group" style="flex-direction:row; align-items:center; gap:8px;">
-          <input type="checkbox" id="loc-active" checked style="width:auto; margin:0;">
-          <label for="loc-active" style="margin:0;">Aktif Lokasyon (Personeller kullanabilir)</label>
+        <div style="display:flex; align-items:center; gap:10px; margin: 15px 0 20px; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 8px; border: 1px solid var(--border);">
+          <input type="checkbox" id="loc-active" checked style="width:20px; height:20px; margin:0; accent-color:var(--accent);">
+          <label for="loc-active" style="margin:0; cursor:pointer; font-size:13px; color:var(--text-primary); text-transform:none; letter-spacing:0;">Aktif Lokasyon (Personeller kullanabilir)</label>
         </div>
         <div id="loc-error" class="alert alert-danger" style="display:none;"></div>
       </div>
@@ -229,10 +229,19 @@
     const DEFAULT_COORD = [41.0082, 28.9784];
 
     function initMap() {
-      if (map) return;
-      map = L.map('loc-map').setView(DEFAULT_COORD, 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; OpenStreetMap'
+      if (map) {
+        setTimeout(() => map.invalidateSize(), 100);
+        return;
+      }
+      
+      // Google Maps Tiles in Leaflet
+      map = L.map('loc-map', { zoomControl: false }).setView(DEFAULT_COORD, 13);
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+      
+      L.tileLayer('https://{s}.google.com/vt/lyrs=m&x={x}&y={y}&z={z}', {
+        maxZoom: 20,
+        subdomains: ['mt0', 'mt1', 'mt2', 'mt3'],
+        attribution: '&copy; Google Maps'
       }).addTo(map);
 
       map.on('click', (e) => {
@@ -260,6 +269,7 @@
         mapCircle.setRadius(radius);
       }
       map.setView([lat, lng], zoom);
+      setTimeout(() => map.invalidateSize(), 100);
     }
 
     function updateMapCircle() {
@@ -292,7 +302,6 @@
       
       setTimeout(() => {
         initMap();
-        map.invalidateSize();
         setMapPosition(DEFAULT_COORD[0], DEFAULT_COORD[1], 10);
       }, 100);
     }
@@ -318,7 +327,6 @@
 
       setTimeout(() => {
         initMap();
-        map.invalidateSize();
         setMapPosition(l.latitude, l.longitude, 16);
       }, 100);
     }
