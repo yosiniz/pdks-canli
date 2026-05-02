@@ -10,20 +10,24 @@ function authenticateToken(req, res, next) {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
+  console.log(`[AUTH] Request: ${req.method} ${req.originalUrl}, HasToken: ${!!token}`);
+
   if (!token) {
+    console.log(`[AUTH] No token found for ${req.originalUrl}`);
     return res.status(401).json({ error: 'Yetkilendirme token\'ı bulunamadı' });
   }
 
-  try {
-    const decoded = jwt.verify(token, JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token süresi dolmuş' });
+  jwt.verify(token, JWT_SECRET, (err, user) => {
+    if (err) {
+      console.log(`[AUTH] Token verification failed for ${req.originalUrl}:`, err.message);
+      if (err.name === 'TokenExpiredError') {
+        return res.status(401).json({ error: 'Token süresi dolmuş' });
+      }
+      return res.status(403).json({ error: 'Geçersiz token' });
     }
-    return res.status(403).json({ error: 'Geçersiz token' });
-  }
+    req.user = user;
+    next();
+  });
 }
 
 /**

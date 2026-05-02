@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PDKS - Personel Yönetimi</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><circle cx='50' cy='50' r='50' fill='%23f97316'/></svg>">
   <link rel="stylesheet" href="css/admin.css?v=5">
   <!-- DARK THEME CRITICAL OVERRIDES -->
   <style>
@@ -118,10 +119,23 @@
     const TOKEN = localStorage.getItem('pdks_admin_token');
     if (!TOKEN) window.location.href = 'login.html';
 
-    async function apiFetch(url, opts) {
-      const res = await fetch(url, { headers: { 'Authorization':'Bearer '+TOKEN, 'Content-Type':'application/json' }, ...opts });
-      if (res.status===401) { logout(); return null; }
-      return await res.json();
+    async function apiFetch(url, opts = {}) {
+      try {
+        const res = await fetch(url, { 
+          headers: { 
+            'Authorization':'Bearer '+TOKEN, 
+            'Content-Type':'application/json' 
+          }, 
+          ...opts 
+        });
+        if (res.status===401) { logout(); return null; }
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'API Hatası');
+        return data;
+      } catch (err) {
+        console.error('API Fetch Hatası:', err);
+        throw err;
+      }
     }
 
     async function loadUsers() {
