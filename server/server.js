@@ -18,6 +18,11 @@ const noCacheOpts = { etag: false, lastModified: false, setHeaders: (res) => {
   res.setHeader('Expires', '0');
 }};
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+// Render persistent disk servisi
+const PERSISTENT_DATA = '/opt/render/project/src/server/data';
+if (require('fs').existsSync(PERSISTENT_DATA)) {
+  app.use('/uploads/qrcodes', express.static(path.join(PERSISTENT_DATA, 'qrcodes')));
+}
 app.use('/mobile', express.static(path.join(__dirname, '..', 'mobile'), noCacheOpts));
 app.use('/admin',  express.static(path.join(__dirname, '..', 'admin'),  noCacheOpts));
 

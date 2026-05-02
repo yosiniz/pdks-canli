@@ -119,21 +119,35 @@
     // Sayfa yüklendiğinde token kontrolü
     if (!getToken()) window.location.href = 'login.html';
 
-    async function apiFetch(url, opts) {
+    async function apiFetch(url, opts = {}) {
       const token = getToken();
       if (!token) { window.location.href = 'login.html'; return null; }
+      
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 saniye timeout
+
       try {
         const headers = { 'Authorization': 'Bearer ' + token };
-        if (opts && opts.body && typeof opts.body === 'string') headers['Content-Type'] = 'application/json';
-        const res = await fetch(url, { headers, ...opts });
+        if (opts.body && typeof opts.body === 'string') headers['Content-Type'] = 'application/json';
+        
+        const res = await fetch(url, { 
+          headers, 
+          ...opts,
+          signal: controller.signal 
+        });
+        
+        clearTimeout(timeoutId);
+        
         if (res.status === 401) { logout(); return null; }
         if (!res.ok) {
           const errData = await res.json().catch(() => ({ error: 'Sunucu hatası: ' + res.status }));
-          throw new Error(errData.error || 'İstek başarısız oldu');
+          throw new Error(errData.error || 'İstek başarısız oldu (Durum: ' + res.status + ')');
         }
         return await res.json();
       } catch (err) {
+        clearTimeout(timeoutId);
         console.error('API Fetch Hatası:', err);
+        if (err.name === 'AbortError') throw new Error('İstek zaman aşımına uğradı (Sunucu yanıt vermiyor)');
         throw err;
       }
     }
@@ -168,7 +182,18 @@
           '</div>';
         }).join('');
       } catch (err) {
-        grid.innerHTML = '<div style="text-align:center;color:#ef4444;padding:60px;grid-column:1/-1;"><p>Veriler yüklenirken hata oluştu</p><p style="margin-top:8px;font-size:12px;opacity:0.8;">' + err.message + '</p></div>';
+        grid.innerHTML = `
+          <div style="text-align:center;color:#ef4444;padding:60px;grid-column:1/-1;">
+            <div style="font-size:40px;margin-bottom:15px;">⚠️</div>
+            <p style="font-weight:600;font-size:16px;">Veriler yüklenirken bir hata oluştu</p>
+            <p style="margin-top:8px;font-size:13px;opacity:0.8;background:rgba(239,68,68,0.1);padding:10px;border-radius:8px;display:inline-block;">
+              ${err.message}
+            </p>
+            <p style="margin-top:15px;font-size:12px;color:var(--text-secondary);">
+              Lütfen internet bağlantınızı kontrol edin veya sistem yöneticisine başvurun.
+            </p>
+            <button class="btn btn-secondary" onclick="loadLocations()" style="margin-top:20px;">Tekrar Dene</button>
+          </div>`;
       }
     }
 

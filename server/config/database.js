@@ -8,7 +8,12 @@ const pool = new Pool({
   connectionString,
   ssl: {
     rejectUnauthorized: false // Cloud veritabanlari icin gerekli (Neon, Supabase vb.)
-  }
+  },
+  // Canli ortamda tikanmalari onlemek icin zaman asimi ve havuz limitleri
+  connectionTimeoutMillis: 10000,
+  idleTimeoutMillis: 30000,
+  max: 20, 
+  query_timeout: 15000 // Sorgu bazli 15 saniye limit
 });
 
 // Helper for standard queries
@@ -149,7 +154,12 @@ module.exports = {
     },
     all: async (sql, params = []) => {
       try {
+        const existingParams = sql.match(/\$\d+/g);
         let idx = 1;
+        if (existingParams) {
+          const numbers = existingParams.map(p => parseInt(p.substring(1)));
+          idx = Math.max(...numbers) + 1;
+        }
         const formattedSql = sql.replace(/\?/g, () => `$${idx++}`);
         const res = await query(formattedSql, params);
         return res.rows;
@@ -160,7 +170,12 @@ module.exports = {
     },
     run: async (sql, params = []) => {
       try {
+        const existingParams = sql.match(/\$\d+/g);
         let idx = 1;
+        if (existingParams) {
+          const numbers = existingParams.map(p => parseInt(p.substring(1)));
+          idx = Math.max(...numbers) + 1;
+        }
         const formattedSql = sql.replace(/\?/g, () => `$${idx++}`);
         const res = await query(formattedSql, params);
         // PostgreSQL'de RETURNING id varsa rows[0].id döner

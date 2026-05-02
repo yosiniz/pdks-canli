@@ -3,7 +3,11 @@ const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 const fs = require('fs');
 
-const QR_DIR = path.join(__dirname, '..', 'uploads', 'qrcodes');
+// Render'da persistent disk varsa orayı kullan, yoksa yerel uploads/qrcodes kullan
+const PERSISTENT_DATA = '/opt/render/project/src/server/data';
+const QR_DIR = fs.existsSync(PERSISTENT_DATA) 
+  ? path.join(PERSISTENT_DATA, 'qrcodes')
+  : path.join(__dirname, '..', 'uploads', 'qrcodes');
 
 // Ensure QR directory exists
 if (!fs.existsSync(QR_DIR)) {
